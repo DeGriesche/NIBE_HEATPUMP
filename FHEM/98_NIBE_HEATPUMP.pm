@@ -234,7 +234,7 @@ sub getConfig($) {
 
 sub getParameter($@) {
 	my ($hash, @parameterIds) = @_;
-	my $url = "$apiBaseUrl/systems/".$hash->{systemId)."/parameters?parameterIds=".join("&parameterIds=", @parameterIds);
+	my $url = "$apiBaseUrl/systems/".$hash->{systemId}."/parameters?parameterIds=".join("&parameterIds=", @parameterIds);
 	my $response = oauth2($hash)->get( $url );
 	if ( $response->is_error ) { 
 		print $response->error_as_HTML;
