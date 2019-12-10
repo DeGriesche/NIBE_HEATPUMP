@@ -55,7 +55,7 @@ sub NIBE_HEATPUMP_Undef($$) {
 sub NIBE_HEATPUMP_Delete ($$) {
 	my ( $hash, $name ) = @_;
 	# nothing to do
-	return $undef;
+	return undef;
 }
 
 
@@ -64,8 +64,8 @@ sub NIBE_HEATPUMP_Get($@) {
 	
 	return "\"get $name\" needs at least one argument" unless(defined($opt));
 	
-	if($opt eq "mode") {
-		return getSmartHomeMode($attr{$name}{systemId};
+	if ($opt eq "mode") {
+		return getSmartHomeMode($attr{$name}{systemId});
 	} else {
 		return "Unknown argument $opt, choose one of ".join(@opts, " ");
 	}
