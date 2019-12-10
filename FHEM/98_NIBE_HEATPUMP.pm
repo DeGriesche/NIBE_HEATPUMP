@@ -121,7 +121,7 @@ sub requestToken($) {
 		redirect_uri => 'https://www.marshflattsfarm.org.uk/nibeuplink/oauth2callback/index.php',
 		request_required_params => [ 'redirect_uri', 'state', 'scope', 'grant_type', 'client_id', 'client_secret', 'code' ],
 		scope => 'READSYSTEM+WRITESYSTEM',
-		save_tokens => \&save_tokens
+		save_tokens => \&save_tokens($hash)
 	);
 
 	print "Create a new Authorization Code and enter (copy-and-paste) it here\n";
