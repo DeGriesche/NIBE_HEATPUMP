@@ -109,6 +109,7 @@ sub NIBE_HEATPUMP_Attr(@) {
 sub saveToken($) {
 	my ($hash) = @_;
 	$hash->{token} = shift;
+	print "TOKEN ".$hash->{token}."\n";
 }
 
 sub requestToken($) {
@@ -123,14 +124,12 @@ sub requestToken($) {
 		save_tokens => \&saveToken($hash)
 	);
 
-	print "Create a new Authorization Code and enter (copy-and-paste) it here\n";
 	my $code = $hash->{authCode};
 	chomp $code;
-
-print "CODE ".$code;
+	print "CODE ".$code."\n";
 
 	$oauth2->request_tokens(
-		code=> $code,
+		code => $code,
 		state => 'STATE'
 	);
 }
