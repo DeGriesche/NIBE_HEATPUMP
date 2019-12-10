@@ -5,7 +5,6 @@ use JSON;
 use Encode;
 use LWP::Authen::OAuth2;
 
-my $filename = 'C:/Users/601457/Desktop/.NIBE_Uplink_API_Tokens.json';
 my $apiBaseUrl = 'https://api.nibeuplink.com/api/v1';
 my $oauth2;
 my @opts = ("mode");
