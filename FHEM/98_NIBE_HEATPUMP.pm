@@ -127,6 +127,8 @@ sub requestToken($) {
 	my $code = $hash->{authCode};
 	chomp $code;
 
+print "CODE ".$code;
+
 	$oauth2->request_tokens(
 		code=> $code,
 		state => 'STATE'
