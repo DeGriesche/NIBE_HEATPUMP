@@ -34,7 +34,7 @@ sub NIBE_HEATPUMP_Define($$) {
 	$hash->{name}  = $param[0];
 	$hash->{clientId}  = $param[2];
 	
-    if(int(@param) > 5) {
+    if(int(@param) < 5) {
         return "wrong number of parameters: define <name> NIBE_HEATPUMP <clientId> <clientSecret> <authCode> \n Generate authCode via https://api.nibeuplink.com/oauth/authorize?response_type=code&client_id=".$hash->{clientId}."&scope=WRITESYSTEM+READSYSTEM&redirect_uri=https://www.marshflattsfarm.org.uk/nibeuplink/oauth2callback/index.php&state=STATE";
     }
     
