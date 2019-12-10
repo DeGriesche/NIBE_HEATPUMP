@@ -159,9 +159,10 @@ sub oauth2($) {
 	return $oauth2;
 }
 
-sub getSystemsIds() {
+sub getSystemsIds($) {
+        my ($hash) = @_;
 	my $url = "$apiBaseUrl/systems";
-	my $response = oauth2->get($url);
+	my $response = oauth2($hash)->get($url);
 	if ( $response->is_error ) { 
 		print $response->error_as_HTML;
 	}
@@ -179,9 +180,9 @@ sub getSystemsIds() {
 }
 
 sub getSystem($) {
-	my ($systemId) = @_;
-	my $url = "$apiBaseUrl/systems/$systemId";
-	my $response = oauth2->get($url);
+	my ($hash) = @_;
+	my $url = "$apiBaseUrl/systems/".$hash->{systemId};
+	my $response = oauth2($hash)->get($url);
 	if ( $response->is_error ) { 
 		print $response->error_as_HTML;
 	}
@@ -192,9 +193,9 @@ sub getSystem($) {
 }
 
 sub getSmartHomeMode($) {
-	my ($systemId) = @_;
-	my $url = "$apiBaseUrl/systems/$systemId/smarthome/mode";
-	my $response = oauth2->get( $url );
+	my ($hash) = @_;
+	my $url = "$apiBaseUrl/systems/".$hash->{systemId}."/smarthome/mode";
+	my $response = oauth2($hash)->get( $url );
 	if ( $response->is_error ) { 
 		print $response->error_as_HTML; 
 	}
@@ -206,10 +207,10 @@ sub getSmartHomeMode($) {
 }
 
 sub setSmartHomeMode($$) {
-	my ($systemId, $value) = @_;
-	my $url = "$apiBaseUrl/systems/$systemId/smarthome/mode";
+	my ($hash, $value) = @_;
+	my $url = "$apiBaseUrl/systems/".$hash->{systemId}."/smarthome/mode";
 	my $json = '{ "mode": "'.$value.'" }';
-	my $response = oauth2->put( $url, "Content-Type" => "application/json", "Content" => $json );
+	my $response = oauth2($hash)->put( $url, "Content-Type" => "application/json", "Content" => $json );
 	if ( $response->is_error ) { 
 		print $response->error_as_HTML; 
 	}
@@ -219,9 +220,9 @@ sub setSmartHomeMode($$) {
 }
 
 sub getConfig($) {
-	my ($systemId) = @_;
-	my $url = "$apiBaseUrl/systems/$systemId/config";
-	my $response = oauth2->get( $url );
+	my ($hash) = @_;
+	my $url = "$apiBaseUrl/systems/".$hash->{systemId}."/config";
+	my $response = oauth2($hash)->get( $url );
 	if ( $response->is_error ) { 
 		print $response->error_as_HTML; 
 	}
@@ -232,9 +233,9 @@ sub getConfig($) {
 }
 
 sub getParameter($@) {
-	my ($systemId, @parameterIds) = @_;
-	my $url = "$apiBaseUrl/systems/$systemId/parameters?parameterIds=".join("&parameterIds=", @parameterIds);
-	my $response = oauth2->get( $url );
+	my ($hash, @parameterIds) = @_;
+	my $url = "$apiBaseUrl/systems/".$hash->{systemId)."/parameters?parameterIds=".join("&parameterIds=", @parameterIds);
+	my $response = oauth2($hash)->get( $url );
 	if ( $response->is_error ) { 
 		print $response->error_as_HTML;
 	}
@@ -246,11 +247,11 @@ sub getParameter($@) {
 }
 
 sub setParameter($$$) {
-	my ($systemId, $parameterId, $value) = @_;
-	my $url = "$apiBaseUrl/systems/$systemId/parameters";
+	my ($hash, $parameterId, $value) = @_;
+	my $url = "$apiBaseUrl/systems/".$hash->{systemId}."/parameters";
 	my $json = '{ "settings": { "'.$parameterId.'": "'.$value.'" }}';
 	print $json."\n";
-	my $response = oauth2->put( $url, "Content-Type" => "application/json", "Content" => $json );
+	my $response = oauth2($hash)->put( $url, "Content-Type" => "application/json", "Content" => $json );
 	if ( $response->is_error ) { 
 		print $response->error_as_HTML;
 	}
