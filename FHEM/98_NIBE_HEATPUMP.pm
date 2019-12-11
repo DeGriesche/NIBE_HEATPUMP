@@ -137,7 +137,8 @@ sub NIBE_HEATPUMP_requestToken($) {
 	my ($hash) = @_;
 	my $code = $hash->{authCode};
 	chomp $code;
-	my $url = "https://api.nibeuplink.com/oauth/token?grant_type=authorization_code&client_id=".$hash->{clientId}."&client_secret=".$hash->{clientSecret}."code=$code&redirect_uri=https://www.marshflattsfarm.org.uk/nibeuplink/oauth2callback/index.php&scope=READSYSTEM+WRITESYSTEM";
+	my $urlParams = urlEncode("grant_type=authorization_code&client_id=".$hash->{clientId}."&client_secret=".$hash->{clientSecret}."code=$code&redirect_uri=https://www.marshflattsfarm.org.uk/nibeuplink/oauth2callback/index.php&scope=READSYSTEM+WRITESYSTEM");
+	my $url = "https://api.nibeuplink.com/oauth/token?$urlParams";
 	print "URL $url";
 	
 	my $param = {
