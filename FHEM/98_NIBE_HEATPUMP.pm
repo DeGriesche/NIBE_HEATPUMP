@@ -27,20 +27,26 @@ sub NIBE_HEATPUMP_Define($$) {
     my @param = split('[ \t]+', $def);
     
 	if(int(@param) < 3) {
-        return "wrong number of parameters: define <name> NIBE_HEATPUMP <clientId> <clientSecret> <authCode>";
+    	return "wrong number of parameters: define <name> NIBE_HEATPUMP <clientId> <clientSecret> <authCode>";
     }
 	
 	$hash->{name}  = $param[0];
-	$hash->{clientId}  = $param[2];
+	$hash->{clientId} = $param[2];
+	
+	print "NAME ".$hash->{name}."\n";
+	print "CLIENTID ".$hash->{clientId}."\n";
 	
     if(int(@param) < 5) {
         return "wrong number of parameters: define <name> NIBE_HEATPUMP <clientId> <clientSecret> <authCode> \n Generate authCode via https://api.nibeuplink.com/oauth/authorize?response_type=code&client_id=".$hash->{clientId}."&scope=WRITESYSTEM+READSYSTEM&redirect_uri=https://www.marshflattsfarm.org.uk/nibeuplink/oauth2callback/index.php&state=STATE";
     }
     
-	$hash->{clientSecret}  = $param[3];    
-	$hash->{authCode}  = $param[4];
+	$hash->{clientSecret} = $param[3];    
+	$hash->{authCode} = $param[4];
 
-	requestToken($hash);
+	print "SECRET ".$hash->{clientSecret}."n";
+	print "CODE ".$hash->{authCode}."\n";
+
+	NIBE_HEATPUMP_requestToken($hash);
 
     return undef;
 }
@@ -106,13 +112,13 @@ sub NIBE_HEATPUMP_Attr(@) {
 	return undef;
 }
 
-sub saveToken($) {
+sub NIBE_HEATPUMP_saveToken($) {
 	my ($hash) = @_;
 	$hash->{token} = shift;
 	print "TOKEN ".$hash->{token}."\n";
 }
 
-sub requestToken($) {
+sub NIBE_HEATPUMP_requestToken($) {
 	my ($hash) = @_;
 	my $oauth2 = LWP::Authen::OAuth2->new(
 		client_id => $hash->{clientId},
@@ -134,7 +140,7 @@ sub requestToken($) {
 	);
 }
 
-sub oauth2($) {
+sub NIBE_HEATPUMP_oauth2($) {
 	my ($hash) = @_;
 	if (!$oauth2) {
 		print "INITIALIZE\n";
@@ -159,7 +165,7 @@ sub oauth2($) {
 	return $oauth2;
 }
 
-sub getSystemsIds($) {
+sub NIBE_HEATPUMP_getSystemsIds($) {
         my ($hash) = @_;
 	my $url = "$apiBaseUrl/systems";
 	my $response = oauth2($hash)->get($url);
@@ -179,7 +185,7 @@ sub getSystemsIds($) {
 	}
 }
 
-sub getSystem($) {
+sub NIBE_HEATPUMP_getSystem($) {
 	my ($hash) = @_;
 	my $url = "$apiBaseUrl/systems/".$hash->{systemId};
 	my $response = oauth2($hash)->get($url);
@@ -192,7 +198,7 @@ sub getSystem($) {
 	}
 }
 
-sub getSmartHomeMode($) {
+sub NIBE_HEATPUMP_getSmartHomeMode($) {
 	my ($hash) = @_;
 	my $url = "$apiBaseUrl/systems/".$hash->{systemId}."/smarthome/mode";
 	my $response = oauth2($hash)->get( $url );
@@ -206,7 +212,7 @@ sub getSmartHomeMode($) {
 	}
 }
 
-sub setSmartHomeMode($$) {
+sub NIBE_HEATPUMP_setSmartHomeMode($$) {
 	my ($hash, $value) = @_;
 	my $url = "$apiBaseUrl/systems/".$hash->{systemId}."/smarthome/mode";
 	my $json = '{ "mode": "'.$value.'" }';
@@ -219,7 +225,7 @@ sub setSmartHomeMode($$) {
 	}
 }
 
-sub getConfig($) {
+sub NIBE_HEATPUMP_getConfig($) {
 	my ($hash) = @_;
 	my $url = "$apiBaseUrl/systems/".$hash->{systemId}."/config";
 	my $response = oauth2($hash)->get( $url );
@@ -246,7 +252,7 @@ sub getParameter($@) {
     }  
 }
 
-sub setParameter($$$) {
+sub NIBE_HEATPUMP_setParameter($$$) {
 	my ($hash, $parameterId, $value) = @_;
 	my $url = "$apiBaseUrl/systems/".$hash->{systemId}."/parameters";
 	my $json = '{ "settings": { "'.$parameterId.'": "'.$value.'" }}';
