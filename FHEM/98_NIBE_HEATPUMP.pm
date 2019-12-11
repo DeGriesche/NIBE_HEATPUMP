@@ -141,11 +141,11 @@ sub NIBE_HEATPUMP_requestToken($) {
 		"grant_type" 		=> "authorization_code",
 		"client_id" 		=> urlEncode($hash->{clientId}),
 		"client_secret" 	=> urlEncode($hash->{clientSecret}),
-		"code"				=> urlEncode($code),
+		"code"			=> urlEncode($code),
 		"redirect_uri"	 	=> "https://www.marshflattsfarm.org.uk/nibeuplink/oauth2callback/index.php",
-		"scope" 			=> "READSYSTEM+WRITESYSTEM"
+		"scope" 		=> "READSYSTEM+WRITESYSTEM"
 	);
-	my $url = "https://api.nibeuplink.com/oauth/token?".join("&", map { "$_=urlParams{$_}" } keys %urlParams);
+	my $url = "https://api.nibeuplink.com/oauth/token?".join("&", map { "$_=$urlParams{$_}" } keys %urlParams);
 	print "URL $url";
 	
 	my $param = {
