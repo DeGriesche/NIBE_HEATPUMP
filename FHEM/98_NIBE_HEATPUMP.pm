@@ -141,7 +141,7 @@ sub NIBE_HEATPUMP_requestToken($) {
 	print "URL $url";
 	
 	my $param = {
-		url        => urlEncode($url),
+		url        => $url,
 		timeout    => 5,
 		hash       => $hash, # Muss gesetzt werden, damit die Callback funktion wieder $hash hat
 		method     => "POST",
