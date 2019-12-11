@@ -145,7 +145,7 @@ sub NIBE_HEATPUMP_requestToken($) {
 		"redirect_uri"	 	=> "https://www.marshflattsfarm.org.uk/nibeuplink/oauth2callback/index.php",
 		"scope" 		=> "READSYSTEM+WRITESYSTEM"
 	);
-	my $content = join("&", map { "$_=$urlParams{$_}" } keys %urlParams)
+	my $content = join("&", map { "$_=$urlParams{$_}" } keys %urlParams);
 	print "CONTENT ".$content."\n";
 	my $url = "https://api.nibeuplink.com/oauth/token"#?".join("&", map { "$_=$urlParams{$_}" } keys %urlParams);
 	print "URL $url";."\n";
