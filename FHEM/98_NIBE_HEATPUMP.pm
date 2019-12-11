@@ -157,7 +157,7 @@ sub NIBE_HEATPUMP_requestToken($) {
 		hash       => $hash, # Muss gesetzt werden, damit die Callback funktion wieder $hash hat
 		method     => "POST",
 		header     => "Content-Type: application/x-www-form-urlencoded;charset=UTF-8",
-		data		=> $content
+		data		=> $content,
 		callback   => \&NIBE_HEATPUMP_ParseHttpResponse
 	};
 
