@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use JSON;
 use Encode;
+use HttpUtils;
 use LWP::Authen::OAuth2;
 
 my $apiBaseUrl = 'https://api.nibeuplink.com/api/v1';
@@ -141,7 +142,7 @@ sub NIBE_HEATPUMP_requestToken($) {
 	print "URL $url";
 	
 	my $param = {
-		url        => $url,
+		url        => urlEncode($url),
 		timeout    => 5,
 		hash       => $hash, # Muss gesetzt werden, damit die Callback funktion wieder $hash hat
 		method     => "GET",
