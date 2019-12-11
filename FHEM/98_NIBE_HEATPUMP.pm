@@ -64,7 +64,6 @@ sub NIBE_HEATPUMP_Delete ($$) {
 	return undef;
 }
 
-
 sub NIBE_HEATPUMP_Get($@) {
 	my ( $hash, $name, $opt, @args ) = @_;
 	
@@ -145,7 +144,7 @@ sub NIBE_HEATPUMP_requestToken($) {
 		url        => urlEncode($url),
 		timeout    => 5,
 		hash       => $hash, # Muss gesetzt werden, damit die Callback funktion wieder $hash hat
-		method     => "GET",
+		method     => "POST",
 		header     => "Accept: application/json",
 		callback   => \&NIBE_HEATPUMP_ParseHttpResponse
 	};
