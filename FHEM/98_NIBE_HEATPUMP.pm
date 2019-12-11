@@ -118,25 +118,56 @@ sub NIBE_HEATPUMP_saveToken($) {
 	print "TOKEN ".$hash->{token}."\n";
 }
 
+sub NIBE_HEATPUMP_ParseHttpResponse($) {
+    my ($param, $err, $data) = @_;
+    my $hash = $param->{hash};
+    my $name = $hash->{NAME};
+
+    if ($err ne "") {
+        Log3 $name, 3, "error while requesting ".$param->{url}." - $err";
+        readingsSingleUpdate($hash, "fullResponse", "ERROR", 0);
+    } elsif ($data ne "") {
+        Log3 $name, 3, "url ".$param->{url}." returned: $data";
+        # An dieser Stelle die Antwort parsen / verarbeiten mit $data
+        #readingsSingleUpdate($hash, "fullResponse", $data, 0);
+    }
+}
+
 sub NIBE_HEATPUMP_requestToken($) {
 	my ($hash) = @_;
-	my $oauth2 = LWP::Authen::OAuth2->new(
-		client_id => $hash->{clientId},
-		client_secret => $hash->{clientSecret},
-		token_endpoint => 'https://api.nibeuplink.com/oauth/token',
-		redirect_uri => 'https://www.marshflattsfarm.org.uk/nibeuplink/oauth2callback/index.php',
-		request_required_params => [ 'redirect_uri', 'state', 'scope', 'grant_type', 'client_id', 'client_secret', 'code' ],
-		scope => 'READSYSTEM+WRITESYSTEM',
-		save_tokens => \&NIBE_HEATPUMP_saveToken($hash)
-	);
-
 	my $code = $hash->{authCode};
 	chomp $code;
+	my $url = "https://api.nibeuplink.com/oauth/token?grant_type=authorization_code&client_id=".$hash->{clientId}."&client_secret=".$hash->{clientSecret}."code=$code&redirect_uri=https://www.marshflattsfarm.org.uk/nibeuplink/oauth2callback/index.php&scope=READSYSTEM+WRITESYSTEM";
+	print "URL $url";
 	
-	$oauth2->request_tokens(
-		code => $code,
-		state => 'STATE'
-	);
+	my $param = {
+		url        => $url,
+		timeout    => 5,
+		hash       => $hash, # Muss gesetzt werden, damit die Callback funktion wieder $hash hat
+		method     => "GET",
+		header     => "Accept: application/json",
+		callback   => \&NIBE_HEATPUMP_ParseHttpResponse
+	};
+
+	HttpUtils_NonblockingGet({url=>$camURI, timeout=>5, callback=>\&StoreFile});
+	
+	#my $oauth2 = LWP::Authen::OAuth2->new(
+	#	client_id => $hash->{clientId},
+	#	client_secret => $hash->{clientSecret},
+	#	token_endpoint => 'https://api.nibeuplink.com/oauth/token',
+	#	redirect_uri => 'https://www.marshflattsfarm.org.uk/nibeuplink/oauth2callback/index.php',
+	#	request_required_params => [ 'redirect_uri', 'state', 'scope', 'grant_type', 'client_id', 'client_secret', 'code' ],
+	#	scope => 'READSYSTEM+WRITESYSTEM',
+	#	save_tokens => \&NIBE_HEATPUMP_saveToken($hash)
+	#);
+
+	#my $code = $hash->{authCode};
+	#chomp $code;
+	
+	#$oauth2->request_tokens(
+	#	code => $code,
+	#	state => 'STATE'
+	#);
 }
 
 sub NIBE_HEATPUMP_oauth2($) {
