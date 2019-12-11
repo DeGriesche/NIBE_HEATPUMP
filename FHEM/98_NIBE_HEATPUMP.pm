@@ -137,8 +137,15 @@ sub NIBE_HEATPUMP_requestToken($) {
 	my ($hash) = @_;
 	my $code = $hash->{authCode};
 	chomp $code;
-	my $urlParams = urlEncode("grant_type=authorization_code&client_id=".$hash->{clientId}."&client_secret=".$hash->{clientSecret}."code=$code&redirect_uri=https://www.marshflattsfarm.org.uk/nibeuplink/oauth2callback/index.php&scope=READSYSTEM+WRITESYSTEM");
-	my $url = "https://api.nibeuplink.com/oauth/token?$urlParams";
+	my %urlParams = (
+		"grant_type" 		=> "authorization_code",
+		"client_id" 		=> urlEncode($hash->{clientId}),
+		"client_secret" 	=> urlEncode($hash->{clientSecret}),
+		"code"				=> urlEncode($code),
+		"redirect_uri"	 	=> "https://www.marshflattsfarm.org.uk/nibeuplink/oauth2callback/index.php",
+		"scope" 			=> "READSYSTEM+WRITESYSTEM"
+	);
+	my $url = "https://api.nibeuplink.com/oauth/token?".join("&", map { "$_=urlParams{$_}" } keys %urlParams);
 	print "URL $url";
 	
 	my $param = {
@@ -146,8 +153,7 @@ sub NIBE_HEATPUMP_requestToken($) {
 		timeout    => 5,
 		hash       => $hash, # Muss gesetzt werden, damit die Callback funktion wieder $hash hat
 		method     => "POST",
-		header     => "Content-Type: application/x-www-form-urlencoded;charset=UTF-8\nContent-Length: 0",
-		data	   => "",
+		header     => "Content-Type: application/x-www-form-urlencoded;charset=UTF-8",
 		callback   => \&NIBE_HEATPUMP_ParseHttpResponse
 	};
 
