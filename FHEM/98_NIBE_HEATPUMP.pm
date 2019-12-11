@@ -148,7 +148,7 @@ sub NIBE_HEATPUMP_requestToken($) {
 	my $content = join("&", map { "$_=$urlParams{$_}" } keys %urlParams);
 	print "CONTENT ".$content."\n";
 	my $url = "https://api.nibeuplink.com/oauth/token"#?".join("&", map { "$_=$urlParams{$_}" } keys %urlParams);
-	print "URL $url";."\n";
+	print "URL $url\n";
 	
 	
 	my $param = {
