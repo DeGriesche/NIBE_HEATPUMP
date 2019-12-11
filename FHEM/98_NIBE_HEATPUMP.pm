@@ -145,8 +145,11 @@ sub NIBE_HEATPUMP_requestToken($) {
 		"redirect_uri"	 	=> "https://www.marshflattsfarm.org.uk/nibeuplink/oauth2callback/index.php",
 		"scope" 		=> "READSYSTEM+WRITESYSTEM"
 	);
-	my $url = "https://api.nibeuplink.com/oauth/token?".join("&", map { "$_=$urlParams{$_}" } keys %urlParams);
-	print "URL $url";
+	my $content = join("&", map { "$_=$urlParams{$_}" } keys %urlParams)
+	print "CONTENT  $content."\n";
+	my $url = "https://api.nibeuplink.com/oauth/token"#?".join("&", map { "$_=$urlParams{$_}" } keys %urlParams);
+	print "URL $url";."\n";
+	
 	
 	my $param = {
 		url        => $url,
@@ -154,6 +157,7 @@ sub NIBE_HEATPUMP_requestToken($) {
 		hash       => $hash, # Muss gesetzt werden, damit die Callback funktion wieder $hash hat
 		method     => "POST",
 		header     => "Content-Type: application/x-www-form-urlencoded;charset=UTF-8",
+		data		=> $content
 		callback   => \&NIBE_HEATPUMP_ParseHttpResponse
 	};
 
