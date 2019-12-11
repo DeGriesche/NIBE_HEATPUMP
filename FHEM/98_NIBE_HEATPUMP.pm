@@ -43,7 +43,7 @@ sub NIBE_HEATPUMP_Define($$) {
 	$hash->{clientSecret} = $param[3];    
 	$hash->{authCode} = $param[4];
 
-	print "SECRET ".$hash->{clientSecret}."n";
+	print "SECRET ".$hash->{clientSecret}."\n";
 	print "CODE ".$hash->{authCode}."\n";
 
 	NIBE_HEATPUMP_requestToken($hash);
