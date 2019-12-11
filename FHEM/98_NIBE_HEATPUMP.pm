@@ -146,7 +146,7 @@ sub NIBE_HEATPUMP_requestToken($) {
 		"scope" 		=> "READSYSTEM+WRITESYSTEM"
 	);
 	my $content = join("&", map { "$_=$urlParams{$_}" } keys %urlParams)
-	print "CONTENT  $content."\n";
+	print "CONTENT ".$content."\n";
 	my $url = "https://api.nibeuplink.com/oauth/token"#?".join("&", map { "$_=$urlParams{$_}" } keys %urlParams);
 	print "URL $url";."\n";
 	
