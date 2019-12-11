@@ -149,7 +149,7 @@ sub NIBE_HEATPUMP_requestToken($) {
 		callback   => \&NIBE_HEATPUMP_ParseHttpResponse
 	};
 
-	HttpUtils_NonblockingGet({url=>$camURI, timeout=>5, callback=>\&StoreFile});
+	HttpUtils_NonblockingGet($param);
 	
 	#my $oauth2 = LWP::Authen::OAuth2->new(
 	#	client_id => $hash->{clientId},
