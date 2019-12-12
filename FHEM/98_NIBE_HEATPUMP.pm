@@ -6,11 +6,8 @@ use Encode;
 use HttpUtils;
 use Scalar::Util qw(looks_like_number);
 use Date::Parse;
-use LWP::Authen::OAuth2;
 
 my $apiBaseUrl = 'https://api.nibeuplink.com/api/v1';
-my $oauth2;
-my @opts = ("mode");
 
 my %parameter = (
 	"40004" => "aussenTemp",
@@ -42,24 +39,15 @@ sub NIBE_HEATPUMP_Define($$) {
     my ($hash, $def) = @_;
     my @param = split('[ \t]+', $def);
     
-	if(int(@param) < 3) {
-    	return "wrong number of parameters: define <name> NIBE_HEATPUMP <clientId> <clientSecret> <authCode>";
+	if(int(@param) != 4) {
+    	return "wrong number of parameters: define <name> NIBE_HEATPUMP <clientId> <clientSecret>";
     }
 	
 	$hash->{name}  = $param[0];
 	$hash->{clientId} = $param[2];
-	
-    if(int(@param) < 5) {
-        return "wrong number of parameters: define <name> NIBE_HEATPUMP <clientId> <clientSecret> <authCode> \nGenerate authCode via \nhttps://api.nibeuplink.com/oauth/authorize?response_type=code&client_id=".$hash->{clientId}."&scope=WRITESYSTEM+READSYSTEM&redirect_uri=https://www.marshflattsfarm.org.uk/nibeuplink/oauth2callback/index.php&state=STATE";
-    }
-    
 	$hash->{clientSecret} = $param[3];    
-	#$hash->{accessCode} = $param[4]; 
-	
+	$hash->{accessCodeUrl} = "https://api.nibeuplink.com/oauth/authorize?response_type=code&client_id=".$hash->{clientId}."&scope=WRITESYSTEM+READSYSTEM&redirect_uri=https://www.marshflattsfarm.org.uk/nibeuplink/oauth2callback/index.php&state=STATE";
 	$attr{$hash->{NAME}}{refreshInterval} = 10;
-	
-	NIBE_HEATPUMP_requestToken($hash, $param[4]);
-	InternalTimer(gettimeofday() + $attr{$hash->{NAME}}{refreshInterval}, "NIBE_HEATPUMP_refresh", $hash);
 
     return undef;
 }
@@ -81,22 +69,35 @@ sub NIBE_HEATPUMP_Set($@) {
 	print "SET\n";
 	my ( $hash, $name, $cmd, @args ) = @_;
 
-	return "Attribute systemId is undefined" unless($cmd eq "systemId" || $cmd eq "?" || exists $attr{$name}{systemId});
-	return "\"set $name\" needs at least one argument" unless(defined($cmd));
-
-	if ($cmd eq "refresh") {
-		print "COMMAND REFRESH\n";
-		NIBE_HEATPUMP_refresh($hash);
-	} elsif ($cmd eq "systemId") {
-		$attr{$name}{systemId} = @args[0];
-	} elsif ($cmd eq "mode") {
-		if ($args[0] =~ m/(DEFAULT_OPERATION|AWAY_FROM_HOME|VACATION)/) {
-			NIBE_HEATPUMP_setSmartHomeMode($hash, $args[0]);
+	if (!exists $hash->{access_token}) {
+		if ($cmd eq "accessCode") {
+			NIBE_HEATPUMP_requestToken($hash, @args[0]);
 		} else {
-			return "Unknown value $args[0] for $cmd, choose one of DEFAULT_OPERATION AWAY_FROM_HOME VACATION";
+			return "Unknown argument $cmd, choose one of accessCode" ;
 		}
-	} else {
-		return "Unknown argument $cmd, choose one of mode:DEFAULT_OPERATION,AWAY_FROM_HOME,VACATION refresh:noArg systemId";
+	} elsif (!exists $attr{$name}{systemId}) {
+		if ($cmd eq "systemId") {
+			$attr{$name}{systemId} = @args[0];
+			InternalTimer(gettimeofday() + $attr{$hash->{NAME}}{refreshInterval}, "NIBE_HEATPUMP_refresh", $hash);
+		} else {
+			return "Unknown argument $cmd, choose one of systemId" ;
+		}			
+	} else {	
+		return "Attribute systemId is undefined" unless($cmd eq "systemId" || $cmd eq "?" || exists $attr{$name}{systemId});
+		return "\"set $name\" needs at least one argument" unless(defined($cmd));
+
+		if ($cmd eq "refresh") {
+			print "COMMAND REFRESH\n";
+			NIBE_HEATPUMP_refresh($hash);
+		} elsif ($cmd eq "mode") {
+			if ($args[0] =~ m/(DEFAULT_OPERATION|AWAY_FROM_HOME|VACATION)/) {
+				NIBE_HEATPUMP_setSmartHomeMode($hash, $args[0]);
+			} else {
+				return "Unknown value $args[0] for $cmd, choose one of DEFAULT_OPERATION AWAY_FROM_HOME VACATION";
+			}
+		} else {
+			return "Unknown argument $cmd, choose one of mode:DEFAULT_OPERATION,AWAY_FROM_HOME,VACATION refresh:noArg systemId";
+		}
 	}
 }
 
