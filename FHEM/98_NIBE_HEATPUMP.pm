@@ -5,23 +5,29 @@ use JSON;
 use Encode;
 use HttpUtils;
 use Scalar::Util qw(looks_like_number);
-use Date::Parse;
 
 my $apiBaseUrl = 'https://api.nibeuplink.com/api/v1';
+my $oauthTokenBaseUrl = 'https://api.nibeuplink.com/oauth/token';
+my $redirectUrl	= "https://www.marshflattsfarm.org.uk/nibeuplink/oauth2callback/index.php";
+my $apiTimeout = 20;
 
 my %parameter = (
+	"10012" => "verdichterBlockiert",
+	#"10033" => "zhBlockiert",
 	"40004" => "aussenTemp",
-	"40067" => "mittlAussenTemp",
-	"48132" => "voruebergLuxus",
-	"47041" => "komfortmodus",
-	"40014" => "brauchwasserbereitung",
-	"47260" => "ventilationsdrehz",
-	"40025" => "abluftTemp",
-	"40026" => "fortluftTemp",
 	"40008" => "vorlaufTemp",
 	"40012" => "ruecklaufTemp",
+	"40013" => "brauchwasserOben",
+	"40014" => "brauchwasserbereitung",
+	"40025" => "abluftTemp",
+	"40026" => "fortluftTemp",
+	"40067" => "mittlAussenTemp",
+	"43005" => "gradminuten",
 	"43420" => "betriebszeitVerdichter",
-	"43424" => "betriebszeitVerdichterBW"
+	"43424" => "betriebszeitVerdichterBW",
+	"47011" => "vorlaufIndex",
+	"47041" => "komfortmodus",
+	"47260" => "ventilationsdrehz"
 );
 
 sub NIBE_HEATPUMP_Initialize($) {
@@ -32,7 +38,7 @@ sub NIBE_HEATPUMP_Initialize($) {
     $hash->{SetFn}      = 'NIBE_HEATPUMP_Set';
     $hash->{AttrFn}     = 'NIBE_HEATPUMP_Attr';
 
-    $hash->{AttrList} = "systemId refreshInterval ".$readingFnAttributes;
+    $hash->{AttrList} = "systemId refreshInterval debugMode:0,1 maxNotifications ".$readingFnAttributes;
 }
 
 sub NIBE_HEATPUMP_Define($$) {
@@ -46,8 +52,12 @@ sub NIBE_HEATPUMP_Define($$) {
 	$hash->{name}  = $param[0];
 	$hash->{clientId} = $param[2];
 	$hash->{clientSecret} = $param[3];    
-	$hash->{accessCodeUrl} = "https://api.nibeuplink.com/oauth/authorize?response_type=code&client_id=".$hash->{clientId}."&scope=WRITESYSTEM+READSYSTEM&redirect_uri=https://www.marshflattsfarm.org.uk/nibeuplink/oauth2callback/index.php&state=STATE";
-	$attr{$hash->{NAME}}{refreshInterval} = 10;
+	$hash->{accessCodeUrl} = "https://api.nibeuplink.com/oauth/authorize?response_type=code&client_id=".$hash->{clientId}."&scope=WRITESYSTEM+READSYSTEM&redirect_uri=$redirectUrl&state=STATE";
+	$attr{$hash->{NAME}}{refreshInterval} = 600;
+	$attr{$hash->{NAME}}{debugMode} = 0;
+	$attr{$hash->{NAME}}{maxNotifications} = 10;
+	$attr{$hash->{NAME}}{devStateIcon} = "DEFAULT_OPERATION:rc_HOME AWAY_FROM_HOME:user_away VACATION:user_ext_away";
+	$attr{$hash->{NAME}}{icon} = "sani_buffer_temp_all";
 
     return undef;
 }
@@ -66,28 +76,25 @@ sub NIBE_HEATPUMP_Delete ($$) {
 }
 
 sub NIBE_HEATPUMP_Set($@) {
-	print "SET\n";
 	my ( $hash, $name, $cmd, @args ) = @_;
+	
+	return "\"set $name\" needs at least one argument" unless(defined($cmd));
 
-	if (!exists $hash->{access_token}) {
+	if (ReadingsVal($name, ".access_token", 0) != 0) {
 		if ($cmd eq "accessCode") {
-			NIBE_HEATPUMP_requestToken($hash, @args[0]);
+			NIBE_HEATPUMP_requestToken($hash, $args[0]);
 		} else {
 			return "Unknown argument $cmd, choose one of accessCode" ;
 		}
 	} elsif (!exists $attr{$name}{systemId}) {
 		if ($cmd eq "systemId") {
-			$attr{$name}{systemId} = @args[0];
+			$attr{$name}{systemId} = $args[0];
 			InternalTimer(gettimeofday() + $attr{$hash->{NAME}}{refreshInterval}, "NIBE_HEATPUMP_refresh", $hash);
 		} else {
 			return "Unknown argument $cmd, choose one of systemId" ;
 		}			
 	} else {	
-		return "Attribute systemId is undefined" unless($cmd eq "systemId" || $cmd eq "?" || exists $attr{$name}{systemId});
-		return "\"set $name\" needs at least one argument" unless(defined($cmd));
-
 		if ($cmd eq "refresh") {
-			print "COMMAND REFRESH\n";
 			NIBE_HEATPUMP_refresh($hash);
 		} elsif ($cmd eq "mode") {
 			if ($args[0] =~ m/(DEFAULT_OPERATION|AWAY_FROM_HOME|VACATION)/) {
@@ -96,7 +103,7 @@ sub NIBE_HEATPUMP_Set($@) {
 				return "Unknown value $args[0] for $cmd, choose one of DEFAULT_OPERATION AWAY_FROM_HOME VACATION";
 			}
 		} else {
-			return "Unknown argument $cmd, choose one of mode:DEFAULT_OPERATION,AWAY_FROM_HOME,VACATION refresh:noArg systemId";
+			return "Unknown argument $cmd, choose one of mode:DEFAULT_OPERATION,AWAY_FROM_HOME,VACATION refresh:noArg";
 		}
 	}
 }
@@ -106,119 +113,127 @@ sub NIBE_HEATPUMP_Attr(@) {
 	if($cmd eq "set") {
         if($attr_name eq "systemId") {
 			if(length($attr_value) ne 5 || !looks_like_number($attr_value)) {
-			    my $err = "Invalid argument $attr_value to $attr_name. Must be numeric with 5 digits.";
-			    Log 3, "Hello: ".$err;
+			    my $err = "Invalid argument $attr_value to $attr_name. Must be numeric with 5 digits";
+			    Log3 $name, 3, $err;
+			    return3 $err;
+			}
+		} elsif ($attr_name =~ m/(refreshInterval|maxNotifications)/) {
+			if(!looks_like_number($attr_value)) {
+			    my $err = "Invalid argument $attr_value to $attr_name. Must be numeric";
+			    Log3 $name, 3, $err;
 			    return $err;
 			}
-		} else {
-		    return "Unknown attr $attr_name";
-		}
+		} 	
 	}
 	return undef;
 }
 
 sub NIBE_HEATPUMP_getToken($) {
 	my ($hash) = @_;
+	my $name = $hash->{NAME};
 	
-	if ($hash->{token_expiration} <= time()) {
+	if (ReadingsVal($name, ".token_expiration", 0) <= time()) {
 		NIBE_HEATPUMP_refreshToken($hash);
 	}
 	
-	return $hash->{access_token};
-}
-
-sub NIBE_HEATPUMP_getSystemId($) {
-	my ($hash) = @_;
-	my $name = $hash->{name};
-	if (!exists($attr{$name}{systemId})) {
-		
-		return undef;
-	}
+	return ReadingsVal($name, ".access_token", 0);
 }
 
 sub NIBE_HEATPUMP_saveToken($$$) {
-	print "SAVE TOKEN\n";
-	my ($param, $err, $data) = @_;
-    my $hash = $param->{hash};
+	my ($hash, $err, $data) = @_;
     my $name = $hash->{NAME};
+	Log3 $name, 1, "Saving Token" if ($attr{$name}{debugMode});
 
     if ($err ne "") {
-        Log3 $name, 3, "error while requesting ".$param->{url}." - $err";
+        Log3 $name, 3, "error while requesting - $err";
     } elsif ($data ne "") {
 		my $decoded = decode_json($data);
-		my $expTime = time() - 10 + $decoded->{expires_in};
-	
-		$hash->{access_token} = $decoded->{access_token};
-		$hash->{refresh_token} = $decoded->{refresh_token};
-		$hash->{token_expiration} = $expTime;
+		if (exists $decoded->{error}) {
+			Log3 $name, 3, "error while requesting - ".$decoded->{error};
+		} else {
+			readingsBeginUpdate($hash);
+			readingsBulkUpdate($hash, ".access_token", $decoded->{access_token} );
+			readingsBulkUpdate($hash, ".refresh_token", $decoded->{refresh_token} );
+			readingsBulkUpdate($hash, ".token_expiration", time() - 10 + $decoded->{expires_in});
+			readingsEndUpdate($hash, 1);
+			Log3 $name, 1, "Got new Token" if ($attr{$name}{debugMode});
+		}
     }
 }
 
 sub NIBE_HEATPUMP_requestToken($$) {
-	Log 1, "REQUEST TOKEN";
-	
 	my ($hash, $accessCode) = @_;
-	#my $accessCode= $hash->{accessCode};
+	my $name = $hash->{NAME};
+	Log3 $name, 1, "Requesting Token" if ($attr{$name}{debugMode});
+	
 	chomp $accessCode;
 	my %urlParams = (
-		"grant_type" 		=> "authorization_code",
-		"client_id" 		=> urlEncode($hash->{clientId}),
-		"client_secret" 	=> urlEncode($hash->{clientSecret}),
-		"code"			=> urlEncode($accessCode),
-		"redirect_uri"	 	=> "https://www.marshflattsfarm.org.uk/nibeuplink/oauth2callback/index.php",
-		"scope" 		=> "READSYSTEM+WRITESYSTEM"
+		"grant_type" => "authorization_code",
+		"client_id" => urlEncode($hash->{clientId}),
+		"client_secret" => urlEncode($hash->{clientSecret}),
+		"code" => urlEncode($accessCode),
+		"redirect_uri" => $redirectUrl,
+		"scope" => "READSYSTEM+WRITESYSTEM"
 	);
 		
 	my $param = {
-		url        => "https://api.nibeuplink.com/oauth/token",
-		timeout    => 5,
-		hash       => $hash, # Muss gesetzt werden, damit die Callback funktion wieder $hash hat
-		method     => "POST",
-		header     => "Content-Type: application/x-www-form-urlencoded;charset=UTF-8",
-		data		=> join("&", map { "$_=$urlParams{$_}" } keys %urlParams),
-		callback   => \&NIBE_HEATPUMP_saveToken
-	};
-
-	HttpUtils_NonblockingGet($param);
-}
-
-sub NIBE_HEATPUMP_refreshToken($) {
-	Log 1, "REFRESH TOKEN\n";
-	my ($hash) = @_;
-	my $refreshToken = $hash->{refresh_token};
-	
-	my %urlParams = (
-		"grant_type" 	=> "refresh_token",
-		"client_id" 	=> urlEncode($hash->{clientId}),
-		"client_secret" => urlEncode($hash->{clientSecret}),
-		"refresh_token"	=> $refreshToken
-	);
-	my $param = {
-		url        => "https://api.nibeuplink.com/oauth/token",
-		timeout    => 5,
-		hash       => $hash, 
-		method     => "POST",
-		header     => "Content-Type: application/x-www-form-urlencoded;charset=UTF-8",
-		data		=> join("&", map { "$_=$urlParams{$_}" } keys %urlParams),
-		callback   => \&NIBE_HEATPUMP_saveToken
+		url => $oauthTokenBaseUrl,
+		timeout => 5,
+		method => "POST",
+		header => "Content-Type: application/x-www-form-urlencoded;charset=UTF-8",
+		data => join("&", map { "$_=$urlParams{$_}" } keys %urlParams)
 	};
 
 	my ($err, $data) = HttpUtils_BlockingGet($param);
-	NIBE_HEATPUMP_saveToken(("hash" => $hash), $err, $data);
+	NIBE_HEATPUMP_saveToken($hash, $err, $data);
+}
+
+sub NIBE_HEATPUMP_refreshToken($) {
+	my ($hash) = @_;
+	my $name = $hash->{NAME};
+	Log3 $name, 1, "Refreshing Token" if ($attr{$name}{debugMode});
+	
+	my %urlParams = (
+		"grant_type" => "refresh_token",
+		"client_id" => urlEncode($hash->{clientId}),
+		"client_secret" => urlEncode($hash->{clientSecret}),
+		"refresh_token" => ReadingsVal($name, ".refresh_token", "")
+	);
+	my $param = {
+		url => $oauthTokenBaseUrl,
+		timeout => 5,
+		method => "POST",
+		header => "Content-Type: application/x-www-form-urlencoded;charset=UTF-8",
+		data => join("&", map { "$_=$urlParams{$_}" } keys %urlParams)
+	};
+
+	my ($err, $data) = HttpUtils_BlockingGet($param);
+	NIBE_HEATPUMP_saveToken($hash, $err, $data);
 }
 
 sub NIBE_HEATPUMP_refresh($) {
 	my ($hash) = @_;
-	InternalTimer(gettimeofday() + $attr{$hash->{NAME}}{refreshInterval}, "NIBE_HEATPUMP_refresh", $hash);
+	my $name = $hash->{NAME};
+	Log3 $name, 1, "Refresh" if ($attr{$name}{debugMode});
+		
+	NIBE_HEATPUMP_refreshSmartHomeMode($hash);
+	NIBE_HEATPUMP_refreshParameters($hash);
+	NIBE_HEATPUMP_refreshConfig($hash);
+	NIBE_HEATPUMP_refreshNotifications($hash);
+							
+	my $nextRefresh = gettimeofday() + $attr{$name}{refreshInterval};
+	readingsSingleUpdate($hash, "nextRefresh", FmtDateTime($nextRefresh), 1);
+	InternalTimer($nextRefresh, "NIBE_HEATPUMP_refresh", $hash);
 }
 
 sub NIBE_HEATPUMP_refreshSmartHomeMode($) {
-	print "REFRESH SMARTHOME MODE\n";
     my ($hash) = @_;
 	my $name = $hash->{NAME};
+	Log3 $name, 1, "Refresh SmartHome mode" if ($attr{$name}{debugMode});
+
 	my $param = {
 		url        => "$apiBaseUrl/systems/".$attr{$name}{systemId}."/smarthome/mode",
-		timeout    => 5,
+		timeout    => $apiTimeout,
 		hash       => $hash, 
 		method     => "GET",
 		header     => "Authorization: Bearer ".NIBE_HEATPUMP_getToken($hash),
@@ -229,8 +244,13 @@ sub NIBE_HEATPUMP_refreshSmartHomeMode($) {
         					Log3 $hash->{NAME}, 3, "error while requesting ".$param->{url}." - $err";
     					} elsif ($data ne "") {
 							my $decoded = decode_json($data);
-							readingsSingleUpdate($hash, "mode", $decoded->{'mode'}, 1);
-							$hash->{STATE} = $decoded->{'mode'};
+							eval {
+								readingsSingleUpdate($hash, "mode", $decoded->{'mode'}, 1);
+								$hash->{STATE} = $decoded->{'mode'};
+							} or do {
+								my $e = $@;
+								Log3 $hash->{NAME}, 3, "error while requesting ".$param->{url}." - $e";
+							};
 						}
 					}
 	};
@@ -238,12 +258,13 @@ sub NIBE_HEATPUMP_refreshSmartHomeMode($) {
 }
 
 sub NIBE_HEATPUMP_refreshParameters($) {
-	print "REFRESH PARAMETER\n";
     my ($hash) = @_;
 	my $name = $hash->{NAME};
+	Log3 $name, 1, "Refreshing parameter" if ($attr{$name}{debugMode});
+	
 	my $param = {
 		url        => "$apiBaseUrl/systems/".$attr{$name}{systemId}."/parameters?parameterIds=".join("&parameterIds=", keys %parameter),
-		timeout    => 5,
+		timeout    => $apiTimeout,
 		hash       => $hash, 
 		method     => "GET",
 		header     => "Authorization: Bearer ".NIBE_HEATPUMP_getToken($hash),
@@ -253,21 +274,102 @@ sub NIBE_HEATPUMP_refreshParameters($) {
     					if ($err ne "") {
         					Log3 $hash->{NAME}, 3, "error while requesting ".$param->{url}." - $err";
     					} elsif ($data ne "") {
-							#print $data."\n";
-							readingsBeginUpdate($hash);
-							my $decoded = decode_json($data);
-							for my $hashref (@{ $decoded }) {
-								my $parameterId = $hashref->{ 'parameterId' };
-								my $parameterValue = $hashref->{ 'rawValue' };
-								my $parameterUnit = $hashref->{ 'unit' };
-
-								if ($parameterUnit eq "°C") {
-									$parameterValue = $parameterValue / 10;
+							eval {
+								readingsBeginUpdate($hash);
+								my $decoded = decode_json($data);
+								for my $hashref (@{ $decoded }) {
+									my $parameterId = $hashref->{ 'parameterId' };
+									my $parameterValue = $hashref->{ 'rawValue' };
+									my $parameterUnit = $hashref->{ 'unit' };
+									$parameterValue = $parameterValue / 10 if ($parameterUnit eq "°C");
+																		
+									readingsBulkUpdate($hash, $parameter{$parameterId}, $parameterValue);
 								}
-								
-								readingsBulkUpdate($hash, $parameter{$parameterId}, $parameterValue);
-							}
-							readingsEndUpdate($hash, 1);
+								readingsEndUpdate($hash, 1);
+							} or do {
+								my $e = $@;
+								Log3 $hash->{NAME}, 3, "error while requesting ".$param->{url}." - $e";
+							};
+						}
+					}
+	};
+	HttpUtils_NonblockingGet($param);
+}
+
+sub NIBE_HEATPUMP_refreshConfig($) {
+	my ($hash) = @_;
+	my $name = $hash->{NAME};
+	Log3 $name, 1, "Refreshing config" if ($attr{$name}{debugMode});
+	
+	my $param = {
+		url        => "$apiBaseUrl/systems/".$attr{$name}{systemId}."/config",
+		timeout    => $apiTimeout,
+		hash       => $hash, 
+		method     => "GET",
+		header     => "Authorization: Bearer ".NIBE_HEATPUMP_getToken($hash),
+		callback   => sub($) {
+						my ($param, $err, $data) = @_;
+  						my $hash = $param->{hash};
+    					if ($err ne "") {
+        					Log3 $hash->{NAME}, 3, "error while requesting ".$param->{url}." - $err";
+    					} elsif ($data ne "") {
+							eval {
+								readingsBeginUpdate($hash);
+								my $decoded = decode_json($data);
+								readingsBulkUpdate($hash, "conf_hasCooling", $decoded->{hasCooling});
+								readingsBulkUpdate($hash, "conf_hasHeating", $decoded->{hasHeating});
+								readingsBulkUpdate($hash, "conf_hasHotWater", $decoded->{hasHotWater});
+								readingsBulkUpdate($hash, "conf_hasVentilation", $decoded->{hasVentilation});		
+								readingsEndUpdate($hash, 1);
+							} or do {
+								my $e = $@;
+								Log3 $hash->{NAME}, 3, "error while requesting ".$param->{url}." - $e";
+							};
+						}
+					}
+	};
+	HttpUtils_NonblockingGet($param);
+}
+
+sub NIBE_HEATPUMP_refreshNotifications($) {
+	my ($hash) = @_;
+	my $name = $hash->{NAME};
+	Log3 $name, 1, "Refreshing notifications" if ($attr{$name}{debugMode});
+	
+	my $param = {
+		url        => "$apiBaseUrl/systems/".$attr{$name}{systemId}."/notifications?itemsPerPage=".$attr{$name}{maxNotifications},
+		timeout    => $apiTimeout,
+		hash       => $hash, 
+		method     => "GET",
+		header     => "Authorization: Bearer ".NIBE_HEATPUMP_getToken($hash),
+		callback   => sub($) {
+						my ($param, $err, $data) = @_;
+  						my $hash = $param->{hash};
+    					if ($err ne "") {
+        					Log3 $hash->{NAME}, 3, "error while requesting ".$param->{url}." - $err";
+    					} elsif ($data ne "") {
+							eval {
+								readingsBeginUpdate($hash);
+								my $maxNotifications = $attr{$name}{maxNotifications};
+								my $decoded = decode_json($data);
+								my @objects = $decoded->{objects};
+								for my $i (0 .. $#objects) {					
+									readingsBulkUpdate($hash, "notification_".sprintf("%02d", $i+1), $objects[$i]);
+								}
+								for my $i ($#objects .. $maxNotifications-1) {					
+									readingsBulkUpdate($hash, "notification_".sprintf("%02d", $i+1), "");
+								}
+								readingsEndUpdate($hash, 1);
+								for my $readingsname (keys %{$hash->{READINGS}}) {
+									if ($readingsname =~ m/notification_\d+/) {
+										my ($no) = ($readingsname =~ m/notification_(\d+)/);
+										readingsDelete($hash, $readingsname) if (length $no != 2 || $no < 1 || $no > $maxNotifications);
+									}
+								}
+							} or do {
+								my $e = $@;
+								Log3 $hash->{NAME}, 3, "error while requesting ".$param->{url}." - $e";
+							};
 						}
 					}
 	};
@@ -275,40 +377,23 @@ sub NIBE_HEATPUMP_refreshParameters($) {
 }
 
 sub NIBE_HEATPUMP_setSmartHomeMode($$) {
-	print "SET SMARTHOME MODE\n";
     my ($hash, $value) = @_;
 	my $name = $hash->{NAME};
-	my $json = '{ "mode": "'.$value.'" }';
+	Log3 $name, 1, "Set SmartHome mode $value" if ($attr{$name}{debugMode});
+	
 	my $param = {
-		url        => "$apiBaseUrl/systems/".$attr{$name}{systemId}."/smarthome/mode",
-		timeout    => 5,
-		hash       => $hash, 
-		method     => "PUT",
-		data	   => $json,
-		header     => "Authorization: Bearer ".NIBE_HEATPUMP_getToken($hash)."\nContent-Type: application/json",
-		callback   => sub($) {
-						my ($param, $err, $data) = @_;
-  						my $hash = $param->{hash};
-    					if ($err ne "") {
-        					Log3 $hash->{NAME}, 3, "error while requesting ".$param->{url}." - $err";
-    					} elsif ($data ne "") {
-							print $data."\n";
-						}
-					}
+		url => "$apiBaseUrl/systems/".$attr{$name}{systemId}."/smarthome/mode",
+		timeout => 10,
+		method => "PUT",
+		data => '{ "mode": "'.$value.'" }',
+		header => "Authorization: Bearer ".NIBE_HEATPUMP_getToken($hash)."\nContent-Type: application/json"
 	};
-	HttpUtils_NonblockingGet($param);
-}
-
-sub NIBE_HEATPUMP_getConfig($) {
-	my ($hash) = @_;
-	my $url = "$apiBaseUrl/systems/".$hash->{systemId}."/config";
-	my $response = oauth2($hash)->get( $url );
-	if ( $response->is_error ) { 
-		print $response->error_as_HTML; 
-	}
-	if ( $response->is_success ) {
-		#print $response->content."\n";
-		return % { decode_json(encode_utf8($response->content)) };
+	my ($err, $data) = HttpUtils_BlockingGet($param);
+	
+	if ($err ne "") {
+		Log3 $hash->{NAME}, 3, "error while requesting ".$param->{url}." - $err";
+    } else {
+		NIBE_HEATPUMP_refresh($hash);
 	}
 }
 
