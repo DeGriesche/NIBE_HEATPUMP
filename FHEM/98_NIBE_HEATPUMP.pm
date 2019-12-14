@@ -215,15 +215,15 @@ sub NIBE_HEATPUMP_refresh($) {
 	my ($hash) = @_;
 	my $name = $hash->{NAME};
 	Log3 $name, 1, "Refresh" if ($attr{$name}{debugMode});
-		
+						
+	my $nextRefresh = gettimeofday() + $attr{$name}{refreshInterval};
+	readingsSingleUpdate($hash, "nextRefresh", FmtDateTime($nextRefresh), 1);
+	InternalTimer($nextRefresh, "NIBE_HEATPUMP_refresh", $hash);
+	
 	NIBE_HEATPUMP_refreshSmartHomeMode($hash);
 	NIBE_HEATPUMP_refreshParameters($hash);
 	NIBE_HEATPUMP_refreshConfig($hash);
 	NIBE_HEATPUMP_refreshNotifications($hash);
-							
-	my $nextRefresh = gettimeofday() + $attr{$name}{refreshInterval};
-	readingsSingleUpdate($hash, "nextRefresh", FmtDateTime($nextRefresh), 1);
-	InternalTimer($nextRefresh, "NIBE_HEATPUMP_refresh", $hash);
 }
 
 sub NIBE_HEATPUMP_refreshSmartHomeMode($) {
