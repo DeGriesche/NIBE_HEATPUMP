@@ -39,6 +39,15 @@ sub NIBE_HEATPUMP_Initialize($) {
 	$hash->{AttrFn}     = 'NIBE_HEATPUMP_Attr';
 
 	$hash->{AttrList} = "systemId refreshInterval debugMode:0,1 maxNotifications ".$readingFnAttributes;
+	
+	
+	@webs = devspec2array("TYPE=FHEMWEB");
+	for (@webs) {
+		my $iconpath = $attr->{$_}{iconPath};
+		if ($args[0] =~ m/.*nibe_heatpump.*/) {
+			$attr->{$_}{iconPath} = "$iconPath www/images/nibe_heatpump";
+		}
+	}
 }
 
 sub NIBE_HEATPUMP_Define($$) {
@@ -57,7 +66,7 @@ sub NIBE_HEATPUMP_Define($$) {
 	$attr{$hash->{NAME}}{debugMode} = 0;
 	$attr{$hash->{NAME}}{maxNotifications} = 10;
 	$attr{$hash->{NAME}}{devStateIcon} = "DEFAULT_OPERATION:rc_HOME AWAY_FROM_HOME:user_away VACATION:user_ext_away";
-	$attr{$hash->{NAME}}{icon} = "sani_buffer_temp_all";
+	$attr{$hash->{NAME}}{icon} = "nibe_heatpump";
 
 	return undef;
 }
