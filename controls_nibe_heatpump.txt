@@ -1,4 +1,4 @@
 DEL ./FHEM/98_NIBE_HEATPUMP.pm
-UPD 2019-12-16_13:38:31 16023 FHEM/98_NIBE_HEATPUMP.pm
+UPD 2019-12-16_13:40:31 16023 FHEM/98_NIBE_HEATPUMP.pm
 DEL ./www/images/fhemSVG/nibe_heatpump.svg
 UPD 2019-12-16_13:38:31 11763 www/images/fhemSVG/nibe_heatpump.svg
