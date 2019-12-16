@@ -12,7 +12,7 @@
    width="585"
    version="1.1"
    id="svg5682"
-   sodipodi:docname="iconfinder_icon-home_2867911.svg"
+   sodipodi:docname="nibe_mode_default.svg"
    inkscape:version="0.92.4 (5da689c313, 2019-01-14)">
   <metadata
      id="metadata5688">
@@ -22,7 +22,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -42,7 +42,7 @@
      id="namedview5684"
      showgrid="false"
      inkscape:zoom="0.86915209"
-     inkscape:cx="451.18462"
+     inkscape:cx="199.79018"
      inkscape:cy="97.341141"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
@@ -53,5 +53,5 @@
      d="m 323.34991,526.43941 v -146.25 h -58.5 v 146.25 a 58.5,58.5 0 0 1 -58.5,58.5 h -87.75 a 58.5,58.5 0 0 1 -58.500002,-58.5 v -222.0075 l -8.775,8.775 a 29.25,29.25 0 1 1 -40.95,-41.535 L 273.62491,8.4219109 a 29.25,29.25 0 0 1 40.95,0 l 263.25,263.2499991 a 29.25,29.25 0 0 1 -40.95,41.535 l -8.775,-8.775 v 222.0075 a 58.5,58.5 0 0 1 -58.5,58.5 h -87.75 a 58.5,58.5 0 0 1 -58.5,-58.5 z m 146.25,0 v -280.5075 l -175.5,-175.499999 -175.5,175.499999 v 280.5075 h 87.75 v -146.25 c 0,-32.175 26.325,-58.5 58.5,-58.5 h 58.5 a 58.5,58.5 0 0 1 58.5,58.5 v 146.25 z"
      id="path5680"
      inkscape:connector-curvature="0"
-     style="stroke-width:29.25" />
+     style="stroke-width:29.25;fill:#000000;fill-opacity:1" />
 </svg>
