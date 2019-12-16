@@ -24,7 +24,7 @@ echo.Datetime is %datetime%
 @echo UPD %datetime% %size:"=% %file:"=%>> %controlsFile%
 
 
-set file="www/images/nibe_heatpump/nibe_heatpump.svg"
+set file="www/images/fhemSVG/nibe_heatpump.svg"
 
 FOR /F "usebackq" %%A IN ('%file%') DO set size=%%~zA
 echo.File is %size% bytes
