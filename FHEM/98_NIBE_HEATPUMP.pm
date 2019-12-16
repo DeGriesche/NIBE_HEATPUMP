@@ -56,7 +56,7 @@ sub NIBE_HEATPUMP_Define($$) {
 	$attr{$hash->{NAME}}{refreshInterval} = 600;
 	$attr{$hash->{NAME}}{debugMode} = 0;
 	$attr{$hash->{NAME}}{maxNotifications} = 10;
-	$attr{$hash->{NAME}}{devStateIcon} = "DEFAULT_OPERATION:nibe_mode_default@green AWAY_FROM_HOME:nibe_mode_away@yellow VACATION:nibe_mode_vacation@red";
+	$attr{$hash->{NAME}}{devStateIcon} = 'DEFAULT_OPERATION:nibe_mode_default@green AWAY_FROM_HOME:nibe_mode_away@yellow VACATION:nibe_mode_vacation@red';
 	$attr{$hash->{NAME}}{icon} = "nibe_heatpump";
 
 	return undef;
