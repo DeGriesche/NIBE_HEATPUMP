@@ -1,4 +1,10 @@
-DEL ./FHEM/98_NIBE_HEATPUMP.pm
-UPD 2019-12-16_13:59:19 16025 FHEM/98_NIBE_HEATPUMP.pm
-DEL ./www/images/fhemSVG/nibe_heatpump.svg
-UPD 2019-12-16_13:59:19 11763 www/images/fhemSVG/nibe_heatpump.svg
+DEL ./FHEM/98_NIBE_HEATPUMP.pm;
+UPD 2019-12-16_14:23:32 16025 FHEM/98_NIBE_HEATPUMP.pm;
+DEL ./www/images/fhemSVG/nibe_heatpump.svg;
+UPD 2019-12-16_14:23:32 11763 www/images/fhemSVG/nibe_heatpump.svg;
+DEL ./www/images/fhemSVG/nibe_mode_default.svg;
+UPD 2019-12-16_14:23:32 2217 www/images/fhemSVG/nibe_mode_default.svg;
+DEL ./www/images/fhemSVG/nibe_mode_away.svg;
+UPD 2019-12-16_14:23:32 2718 www/images/fhemSVG/nibe_mode_away.svg;
+DEL ./www/images/fhemSVG/nibe_mode_vacation.svg;
+UPD 2019-12-16_14:23:32 2621 www/images/fhemSVG/nibe_mode_vacation.svg;
