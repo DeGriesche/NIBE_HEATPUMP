@@ -281,7 +281,7 @@ sub NIBE_HEATPUMP_refreshParameters($) {
 									my $parameterId = $hashref->{ 'parameterId' };
 									my $parameterValue = $hashref->{ 'rawValue' };
 									my $parameterUnit = $hashref->{ 'unit' };
-									$parameterValue = $parameterValue / 10 if ($parameterUnit =~ m/.C/");
+									$parameterValue = $parameterValue / 10 if ($parameterUnit =~ m/.C/);
 																		
 									readingsBulkUpdate($hash, $parameter{$parameterId}, $parameterValue);
 								}
