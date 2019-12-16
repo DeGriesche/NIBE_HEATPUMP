@@ -39,15 +39,6 @@ sub NIBE_HEATPUMP_Initialize($) {
 	$hash->{AttrFn}     = 'NIBE_HEATPUMP_Attr';
 
 	$hash->{AttrList} = "systemId refreshInterval debugMode:0,1 maxNotifications ".$readingFnAttributes;
-	
-	
-	my @webs = devspec2array("TYPE=FHEMWEB");
-	for (@webs) {
-		my $iconpath = $attr->{$_}{iconPath};
-		if ($args[0] =~ m/.*nibe_heatpump.*/) {
-			$attr->{$_}{iconPath} = "$iconPath www/images/nibe_heatpump";
-		}
-	}
 }
 
 sub NIBE_HEATPUMP_Define($$) {
