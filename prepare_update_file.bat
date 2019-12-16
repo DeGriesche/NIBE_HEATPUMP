@@ -12,7 +12,7 @@ CALL :appendLines "www/images/fhemSVG/nibe_mode_vacation.svg"
 EXIT /B %ERRORLEVEL%
 
 :appendLines
-set file=%*;
+set file=%*
 
 FOR /F "usebackq" %%A IN ('%file%') DO set size=%%~zA
 echo.File is %size% bytes
@@ -33,3 +33,4 @@ echo.Datetime is %datetime%
 
 @echo DEL ./%file:"=%>> %controlsFile%
 @echo UPD %datetime% %size:"=% %file:"=%>> %controlsFile%
+EXIT /B 0
