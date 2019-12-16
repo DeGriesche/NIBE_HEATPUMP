@@ -80,7 +80,7 @@ sub NIBE_HEATPUMP_Set($@) {
 	
 	return "\"set $name\" needs at least one argument" unless(defined($cmd));
 
-	if (ReadingsVal($name, ".access_token", 0) != 0) {
+	if (ReadingsVal($name, ".access_token", 0) == 0) {
 		if ($cmd eq "accessCode") {
 			NIBE_HEATPUMP_requestToken($hash, $args[0]);
 		} else {
