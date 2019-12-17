@@ -1,8 +1,7 @@
-FHEM NIBE_HEATPUMP last changes:
-
+# Add changes at the top of the list. Keep it in ASCII, and 80-char wide.
+# Do not insert empty lines here, update check depends on it.
+2019-12-16
+ - Documentation
 2019-12-10
  - Initial
  - Icons
-
-2019-12-16
- - Documentation
