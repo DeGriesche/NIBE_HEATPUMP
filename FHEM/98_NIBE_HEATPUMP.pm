@@ -45,6 +45,7 @@ sub NIBE_HEATPUMP_Initialize($) {
 sub NIBE_HEATPUMP_Define($$) {
 	my ($hash, $def) = @_;
 	my @param = split('[ \t]+', $def);
+	my $name = $hash->{NAME};
 
 	if(int(@param) != 4) {
 		return "wrong number of parameters: define <name> NIBE_HEATPUMP <clientId> <clientSecret>";
@@ -54,12 +55,15 @@ sub NIBE_HEATPUMP_Define($$) {
 	$hash->{clientId} = $param[2];
 	$hash->{clientSecret} = $param[3];
 	$hash->{accessCodeUrl} = "https://api.nibeuplink.com/oauth/authorize?response_type=code&client_id=".$hash->{clientId}."&scope=WRITESYSTEM+READSYSTEM&redirect_uri=$redirectUrl&state=STATE";
-	$attr{$hash->{NAME}}{refreshInterval} = 600;
-	$attr{$hash->{NAME}}{debugMode} = 0;
-	$attr{$hash->{NAME}}{maxNotifications} = 10;
-	$attr{$hash->{NAME}}{devStateIcon} = 'DEFAULT_OPERATION:nibe_mode_default@green AWAY_FROM_HOME:nibe_mode_away@yellow VACATION:nibe_mode_vacation@red';
-	$attr{$hash->{NAME}}{icon} = "nibe_heatpump";
+	$attr{$name}{refreshInterval} = 600;
+	$attr{$name}{debugMode} = 0;
+	$attr{$name}{maxNotifications} = 10;
+	$attr{$name}{devStateIcon} = 'DEFAULT_OPERATION:nibe_mode_default@green AWAY_FROM_HOME:nibe_mode_away@yellow VACATION:nibe_mode_vacation@red';
+	$attr{$name}{icon} = "nibe_heatpump";
 
+	my $nextRefresh = gettimeofday() + $attr{$name}{refreshInterval};
+	readingsSingleUpdate($hash, "nextRefresh", FmtDateTime($nextRefresh), 1);
+	InternalTimer($nextRefresh, "NIBE_HEATPUMP_refresh", $hash);
 	return undef;
 }
 
