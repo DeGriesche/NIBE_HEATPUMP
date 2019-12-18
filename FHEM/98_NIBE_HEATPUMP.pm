@@ -13,6 +13,7 @@ my $apiTimeout = 20;
 my $maxParam = 15;
 
 my %parameter = (
+	"10001" => "ventilationsdrehz"
 	"10012" => "verdichterBlockiert",
 	"10033" => "zhBlockiert",
 	"40004" => "aussenTemp",
@@ -27,8 +28,7 @@ my %parameter = (
 	"43420" => "betriebszeitVerdichter",
 	"43424" => "betriebszeitVerdichterBW",
 	"47011" => "vorlaufIndex",
-	"47041" => "komfortmodus",
-	"47260" => "ventilationsdrehz"
+	"47041" => "komfortmodus"
 );
 
 sub NIBE_HEATPUMP_Initialize($) {
@@ -293,7 +293,7 @@ sub NIBE_HEATPUMP_refreshParameters($) {
 								my $parameterId = $hashref->{ 'parameterId' };
 								my $parameterValue = $hashref->{ 'rawValue' };
 								my $parameterUnit = $hashref->{ 'unit' };
-								$parameterValue = $parameterValue / 10 if ($parameterUnit =~ m/.C/);
+								$parameterValue = $parameterValue / 10 if ($parameterUnit =~ m/.C|GM/);
 								readingsBulkUpdate($hash, $parameter{$parameterId}, $parameterValue);
 							}
 							readingsEndUpdate($hash, 1);
