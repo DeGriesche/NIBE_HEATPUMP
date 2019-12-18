@@ -13,7 +13,7 @@ my $apiTimeout = 20;
 my $maxParam = 15;
 
 my %parameter = (
-	"10001" => "ventilationsdrehz"
+	"10001" => "ventilationsdrehz",
 	"10012" => "verdichterBlockiert",
 	"10033" => "zhBlockiert",
 	"40004" => "aussenTemp",
