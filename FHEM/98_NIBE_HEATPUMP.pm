@@ -231,6 +231,36 @@ sub NIBE_HEATPUMP_refresh($) {
 	NIBE_HEATPUMP_refreshNotifications($hash);
 }
 
+sub NIBE_HEATPUMP_refreshSystem($) {
+	my ($hash) = @_;
+	my $name = $hash->{NAME};
+	Log3 $name, 1, "Refresh System" if ($attr{$name}{debugMode});
+
+	my $param = {
+		url => "$apiBaseUrl/systems/".$attr{$name}{systemId},
+		timeout => $apiTimeout,
+		hash => $hash, 
+		method => "GET",
+		header => "Authorization: Bearer ".NIBE_HEATPUMP_getToken($hash),
+		callback => sub($) {
+			my ($param, $err, $data) = @_;
+			my $hash = $param->{hash};
+			if ($err ne "") {
+				Log3 $hash->{NAME}, 3, "error while requesting ".$param->{url}." - $err";
+			} elsif ($data ne "") {
+				my $decoded = decode_json($data);
+				eval {
+					readingsSingleUpdate($hash, "connectionStatus", $decoded->{'connectionStatus'}, 1);
+				} or do {
+					my $e = $@;
+					Log3 $hash->{NAME}, 3, "error while requesting ".$param->{url}." - $e";
+				};
+			}
+		}
+	};
+	HttpUtils_NonblockingGet($param);
+}
+
 sub NIBE_HEATPUMP_refreshSmartHomeMode($) {
 	my ($hash) = @_;
 	my $name = $hash->{NAME};
