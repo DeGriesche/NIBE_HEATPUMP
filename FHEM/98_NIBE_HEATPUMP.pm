@@ -225,6 +225,7 @@ sub NIBE_HEATPUMP_refresh($) {
 	readingsSingleUpdate($hash, "nextRefresh", FmtDateTime($nextRefresh), 1);
 	InternalTimer($nextRefresh, "NIBE_HEATPUMP_refresh", $hash);
 
+	NIBE_HEATPUMP_refreshSystem($hash);
 	NIBE_HEATPUMP_refreshSmartHomeMode($hash);
 	NIBE_HEATPUMP_refreshParameters($hash);
 	NIBE_HEATPUMP_refreshConfig($hash);
