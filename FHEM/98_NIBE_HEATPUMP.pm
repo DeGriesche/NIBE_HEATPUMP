@@ -286,10 +286,11 @@ sub NIBE_HEATPUMP_refreshSoftware($) {
 					readingsBeginUpdate($hash);
 					my $decoded = decode_json($data);
 					readingsBulkUpdate($hash, "software", $decoded->{current}->{name});
-					if ($decoded->{upgrade} == null) {
-							readingsBulkUpdate($hash, "softwareUpgrade", null);	
+					my $upgrade = $decoded->{upgrade};
+					if (defined($upgrade)) {
+						readingsBulkUpdate($hash, "softwareUpgrade", null);	
 					} else {
-						readingsBulkUpdate($hash, "softwareUpgrade", $decoded->{upgrade}->{name});		
+						readingsBulkUpdate($hash, "softwareUpgrade", $upgrade->{name});		
 					}
 					readingsEndUpdate($hash, 1);
 				} or do {
