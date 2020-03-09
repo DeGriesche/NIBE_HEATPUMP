@@ -101,6 +101,8 @@ sub NIBE_HEATPUMP_Set($@) {
 	} else {	
 		if ($cmd eq "refresh") {
 			NIBE_HEATPUMP_refresh($hash);
+		} elsif ($cmd eq "refreshSoftware") {
+			NIBE_HEATPUMP_refreshSoftware($hash);
 		} elsif ($cmd eq "mode") {
 			if ($args[0] =~ m/(DEFAULT_OPERATION|AWAY_FROM_HOME|VACATION)/) {
 				NIBE_HEATPUMP_setSmartHomeMode($hash, $args[0]);
@@ -108,7 +110,7 @@ sub NIBE_HEATPUMP_Set($@) {
 				return "Unknown value $args[0] for $cmd, choose one of DEFAULT_OPERATION AWAY_FROM_HOME VACATION";
 			}
 		} else {
-			return "Unknown argument $cmd, choose one of mode:DEFAULT_OPERATION,AWAY_FROM_HOME,VACATION refresh:noArg";
+			return "Unknown argument $cmd, choose one of mode:DEFAULT_OPERATION,AWAY_FROM_HOME,VACATION refresh:noArg refreshSoftware:noArg";
 		}
 	}
 }
@@ -226,6 +228,7 @@ sub NIBE_HEATPUMP_refresh($) {
 	InternalTimer($nextRefresh, "NIBE_HEATPUMP_refresh", $hash);
 
 	NIBE_HEATPUMP_refreshSystem($hash);
+	NIBE_HEATPUMP_refreshSoftware($hash);
 	NIBE_HEATPUMP_refreshSmartHomeMode($hash);
 	NIBE_HEATPUMP_refreshParameters($hash);
 	NIBE_HEATPUMP_refreshConfig($hash);
@@ -252,6 +255,39 @@ sub NIBE_HEATPUMP_refreshSystem($) {
 				my $decoded = decode_json($data);
 				eval {
 					readingsSingleUpdate($hash, "connectionStatus", $decoded->{'connectionStatus'}, 1);
+				} or do {
+					my $e = $@;
+					Log3 $hash->{NAME}, 3, "error while requesting ".$param->{url}." - $e";
+				};
+			}
+		}
+	};
+	HttpUtils_NonblockingGet($param);
+}
+
+sub NIBE_HEATPUMP_refreshSoftware($) {
+	my ($hash) = @_;
+	my $name = $hash->{NAME};
+	Log3 $name, 1, "Refresh Software" if ($attr{$name}{debugMode});
+					
+	my $param = {
+		url => "$apiBaseUrl/systems/".$attr{$name}{systemId}."/software",
+		timeout => $apiTimeout,
+		hash => $hash, 
+		method => "GET",
+		header => "Authorization: Bearer ".NIBE_HEATPUMP_getToken($hash),
+		callback => sub($) {
+			my ($param, $err, $data) = @_;
+			my $hash = $param->{hash};
+			if ($err ne "") {
+				Log3 $hash->{NAME}, 3, "error while requesting ".$param->{url}." - $err";
+			} else {
+				eval {
+					readingsBeginUpdate($hash);
+					my $decoded = decode_json($data);
+					readingsBulkUpdate($hash, "software", $decoded->{current});
+					readingsBulkUpdate($hash, "softwareUpgrade", $decoded->{upgrade});		
+					readingsEndUpdate($hash, 1);
 				} or do {
 					my $e = $@;
 					Log3 $hash->{NAME}, 3, "error while requesting ".$param->{url}." - $e";
