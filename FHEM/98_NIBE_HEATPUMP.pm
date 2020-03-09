@@ -285,8 +285,12 @@ sub NIBE_HEATPUMP_refreshSoftware($) {
 				eval {
 					readingsBeginUpdate($hash);
 					my $decoded = decode_json($data);
-					readingsBulkUpdate($hash, "software", $decoded->{current});
-					readingsBulkUpdate($hash, "softwareUpgrade", $decoded->{upgrade});		
+					readingsBulkUpdate($hash, "software", $decoded->{current}->{name});
+					if ($decoded->{upgrade} == null) {
+							readingsBulkUpdate($hash, "softwareUpgrade", null);	
+					} else {
+						readingsBulkUpdate($hash, "softwareUpgrade", $decoded->{upgrade}->{name});		
+					}
 					readingsEndUpdate($hash, 1);
 				} or do {
 					my $e = $@;
