@@ -1,10 +1,10 @@
 DEL ./FHEM/98_NIBE_HEATPUMP.pm
-UPD 2020-03-08_06:31:06 16908 FHEM/98_NIBE_HEATPUMP.pm
+UPD 2020-03-09_09:29:48 18075 FHEM/98_NIBE_HEATPUMP.pm
 DEL ./www/images/fhemSVG/nibe_heatpump.svg
-UPD 2020-03-08_06:31:06 11798 www/images/fhemSVG/nibe_heatpump.svg
+UPD 2020-03-09_09:29:48 11763 www/images/fhemSVG/nibe_heatpump.svg
 DEL ./www/images/fhemSVG/nibe_mode_default.svg
-UPD 2020-03-08_06:31:06 2282 www/images/fhemSVG/nibe_mode_default.svg
+UPD 2020-03-09_09:29:48 2225 www/images/fhemSVG/nibe_mode_default.svg
 DEL ./www/images/fhemSVG/nibe_mode_away.svg
-UPD 2020-03-08_06:31:06 2776 www/images/fhemSVG/nibe_mode_away.svg
+UPD 2020-03-09_09:29:48 2728 www/images/fhemSVG/nibe_mode_away.svg
 DEL ./www/images/fhemSVG/nibe_mode_vacation.svg
-UPD 2020-03-08_06:31:06 2675 www/images/fhemSVG/nibe_mode_vacation.svg
+UPD 2020-03-09_09:29:48 2631 www/images/fhemSVG/nibe_mode_vacation.svg
