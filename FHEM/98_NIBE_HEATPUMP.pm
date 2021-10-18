@@ -28,7 +28,8 @@ my %parameter = (
 	"43420" => "betriebszeitVerdichter",
 	"43424" => "betriebszeitVerdichterBW",
 	"47011" => "vorlaufIndex",
-	"47041" => "komfortmodus"
+	"47041" => "komfortmodus",
+	"43009" => "berechneteVorlaufTemp"
 );
 
 sub NIBE_HEATPUMP_Initialize($) {
