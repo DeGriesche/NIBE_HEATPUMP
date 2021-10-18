@@ -9,8 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node_version: [8.x, 10.x]
-
+        node_version: [8.x]
     steps:
-      - name: update
-        run: prepare_update.sh
+    - uses: actions/checkout@v1
+    - name: script
+      run: ./prepare_update.sh
+      shell: bash
