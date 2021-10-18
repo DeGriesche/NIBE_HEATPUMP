@@ -13,4 +13,4 @@ jobs:
 
     steps:
       - name: update
-        run: ./prepare_update.sh
+        run: prepare_update.sh
