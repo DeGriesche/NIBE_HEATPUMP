@@ -12,6 +12,8 @@ jobs:
         node_version: [8.x]
     steps:
     - uses: actions/checkout@v1
+    - name: Make executeable
+      run: chmod +x ./localizable.sh
     - name: script
-      run: sudo ./prepare_update.sh
+      run: ./prepare_update.sh
       shell: bash
