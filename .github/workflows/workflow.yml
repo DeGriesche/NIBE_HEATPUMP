@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Make executeable
-      run: chmod +x ./localizable.sh
+      run: chmod +x ./prepare_update.sh
     - name: script
       run: ./prepare_update.sh
       shell: bash
