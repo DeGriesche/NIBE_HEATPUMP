@@ -1,0 +1,16 @@
+name: update_controls
+
+on:
+  push:
+
+jobs:
+  linux:
+    name: Update controls file
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node_version: [8.x, 10.x]
+
+    steps:
+      - name: update
+        run: ./prepare_update_file.bat
