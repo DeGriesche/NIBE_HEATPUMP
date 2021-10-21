@@ -1,16 +1,13 @@
 #!/bin/bash
-
-#compass compile --force
-
 rm controls_nibe_heatpump.txt
-
-echo "MOV ./www/hausautomatisierung-com/custom.js unused" >> controls_nibe_heatpump.txt
-
-find ./www -type f \( ! -iname ".*" \) -print0 | while IFS= read -r -d '' f;
+while IFS= read -r -d '' FILE
 do
-    out="UPD "$(stat -f "%Sm" -t "%Y-%m-%d_%T" $f)" "$(stat -f%z $f)" ${f}"
-    echo ${out//.\//} >> controls_nibe_heatpump.txt
-done
+    TIME=$(git log --pretty=format:%cd -n 1 --date=iso -- "$FILE")
+    TIME=$(TZ=Europe/Berlin date -d "$TIME" +%Y-%m-%d_%H:%M:%S)
+    FILESIZE=$(stat -c%s "$FILE")
+	FILE=$(echo "$FILE"  | cut -c 3-)
+	printf "UPD %s %-7d %s\n" "$TIME" "$FILESIZE" "$FILE"  >> controls_nibe_heatpump.txt
+done <   <(find ./FHEM -maxdepth 2 \( -name "*.pm" -o -name "*.txt" \) -print0 | sort -z -g)
 
 # CHANGED file
 echo "FHEM NIBE_HEATPUMP last changes:" > CHANGED
