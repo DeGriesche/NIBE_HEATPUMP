@@ -17,11 +17,10 @@ jobs:
     - name: script
       run: ./prepare_update.sh
       shell: bash
-    - name: push
-      uses: github-actions-x/commit@v2.8
+    - name: Commit & Push changes
+      uses: actions-js/push@master
       with:
-        push-branch: master
-        commit-message: 'prepare update'
-        rebase: 'true'
+        branch: master
+        message: 'prepare update'
         author_name: Action Action
         author_email: mano.pavlakis@gmail.com
