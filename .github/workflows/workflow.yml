@@ -17,3 +17,10 @@ jobs:
     - name: script
       run: ./prepare_update.sh
       shell: bash
+    - name: push
+      uses: github-actions-x/commit@v2.8
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        push-branch: master
+        commit-message: 'prepare update'
+        rebase: 'true'
