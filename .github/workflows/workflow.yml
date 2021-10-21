@@ -20,7 +20,8 @@ jobs:
     - name: Commit & Push changes
       uses: actions-js/push@master
       with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
         branch: master
         message: 'prepare update'
-        author_name: Action Action
+        author_name: Action
         author_email: mano.pavlakis@gmail.com
