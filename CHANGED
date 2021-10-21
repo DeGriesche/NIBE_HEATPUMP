@@ -1,12 +1,12 @@
-# Add changes at the top of the list. Keep it in ASCII, and 80-char wide.
-# Do not insert empty lines here, update check depends on it.
-2021-10-18
- - Added calculated flow temp. (berechneteVorlaufTemp)
- 2019-12-18
- - Start timer on after define and restart
- - new readings
-2019-12-16
- - Documentation
-2019-12-10
- - Initial
- - Icons
+FHEM NIBE_HEATPUMP last changes:
+2021-10-21
+- Update workflow.yml
+- Update workflow.yml
+- Update 98_NIBE_HEATPUMP.pm
+- Update workflow.yml
+- Update controls_nibe_heatpump.txt
+- Update controls_nibe_heatpump.txt
+- Update workflow.yml
+- Update workflow.yml
+- Update workflow.yml
+- Update workflow.yml

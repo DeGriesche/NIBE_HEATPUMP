@@ -1,10 +1,5 @@
-DEL ./FHEM/98_NIBE_HEATPUMP.pm
-UPD 2021-10-21_12:44:15 18432 FHEM/98_NIBE_HEATPUMP.pm
-DEL ./www/images/fhemSVG/nibe_heatpump.svg
-UPD 2020-03-09_10:12:15 11763 www/images/fhemSVG/nibe_heatpump.svg
-DEL ./www/images/fhemSVG/nibe_mode_default.svg
-UPD 2020-03-09_10:12:15 2225 www/images/fhemSVG/nibe_mode_default.svg
-DEL ./www/images/fhemSVG/nibe_mode_away.svg
-UPD 2020-03-09_10:12:15 2728 www/images/fhemSVG/nibe_mode_away.svg
-DEL ./www/images/fhemSVG/nibe_mode_vacation.svg
-UPD 2020-03-09_10:12:15 2631 www/images/fhemSVG/nibe_mode_vacation.svg
+MOV ./www/hausautomatisierung-com/custom.js unused
+UPD www/images/fhemSVG/nibe_mode_away.svg f891b11518fc229 255 ef53 4096 4096 21804531 8555806 8551710 11096064 10029401 www/images/fhemSVG/nibe_mode_away.svg
+UPD www/images/fhemSVG/nibe_mode_default.svg f891b11518fc229 255 ef53 4096 4096 21804531 8555806 8551710 11096064 10029401 www/images/fhemSVG/nibe_mode_default.svg
+UPD www/images/fhemSVG/nibe_heatpump.svg f891b11518fc229 255 ef53 4096 4096 21804531 8555806 8551710 11096064 10029401 www/images/fhemSVG/nibe_heatpump.svg
+UPD www/images/fhemSVG/nibe_mode_vacation.svg f891b11518fc229 255 ef53 4096 4096 21804531 8555806 8551710 11096064 10029401 www/images/fhemSVG/nibe_mode_vacation.svg
