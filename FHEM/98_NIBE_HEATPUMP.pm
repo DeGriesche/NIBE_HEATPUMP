@@ -30,7 +30,14 @@ my %parameter = (
 	"47011" => "vorlaufIndex",
 	"47041" => "komfortmodus",
 	"43009" => "berechneteVorlaufTemp",
-	"43081" => "zhZeitfaktor"
+	"43081" => "zhZeitfaktor",
+	"45001" => "alarmNummer",
+	"43427" => "statusKompressor",
+	"40072" => "volumenstrom",
+	"44298" => "waermemengeBrauchwasserZh",
+	"44306" => "waermemengeBrauchwasser",
+	"44308" => "waermemengeHeizung",
+	"44300" => "waermemengeHeizungZh"
 );
 
 sub NIBE_HEATPUMP_Initialize($) {
