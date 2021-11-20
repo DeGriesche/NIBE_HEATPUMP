@@ -1,7 +1,5 @@
 FHEM NIBE_HEATPUMP last changes:
-2021-10-21
-- Update workflow.yml
-- Update workflow.yml
+2021-11-20
 - prepare update
 - Update prepare_update.sh
 - prepare update
@@ -10,3 +8,5 @@ FHEM NIBE_HEATPUMP last changes:
 - Update prepare_update.sh
 - prepare update
 - Update prepare_update.sh
+- prepare update
+- Update 98_NIBE_HEATPUMP.pm
