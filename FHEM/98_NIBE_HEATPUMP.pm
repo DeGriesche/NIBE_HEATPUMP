@@ -37,7 +37,8 @@ my %parameter = (
 	"44298" => "waermemengeBrauchwasserZh",
 	"44306" => "waermemengeBrauchwasser",
 	"44308" => "waermemengeHeizung",
-	"44300" => "waermemengeHeizungZh"
+	"44300" => "waermemengeHeizungZh",
+	"47387" => "warmwasserErzeugung"
 );
 
 sub NIBE_HEATPUMP_Initialize($) {
