@@ -1,4 +1,4 @@
-UPD 2021-11-20_20:05:37 18676   FHEM/98_NIBE_HEATPUMP.pm
+UPD 2022-01-09_13:50:06 18712   FHEM/98_NIBE_HEATPUMP.pm
 UPD 2019-12-16_13:36:51 11763   www/images/fhemSVG/nibe_heatpump.svg
 UPD 2019-12-16_14:45:54 2728    www/images/fhemSVG/nibe_mode_away.svg
 UPD 2019-12-16_14:45:54 2225    www/images/fhemSVG/nibe_mode_default.svg
