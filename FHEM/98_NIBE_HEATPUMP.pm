@@ -275,8 +275,8 @@ sub NIBE_HEATPUMP_refreshSystem($) {
 			if ($err ne "") {
 				Log3 $hash->{NAME}, 3, "error while requesting ".$param->{url}." - $err";
 			} elsif ($data ne "") {
-				my $decoded = decode_json($data);
 				eval {
+					my $decoded = decode_json($data);
 					readingsSingleUpdate($hash, "connectionStatus", $decoded->{'connectionStatus'}, 1);
 				} or do {
 					my $e = $@;
@@ -349,8 +349,8 @@ sub NIBE_HEATPUMP_refreshSmartHomeMode($) {
 			if ($err ne "") {
 				Log3 $hash->{NAME}, 3, "error while requesting ".$param->{url}." - $err";
 			} elsif ($data ne "") {
-				my $decoded = decode_json($data);
 				eval {
+					my $decoded = decode_json($data);
 					readingsSingleUpdate($hash, "mode", $decoded->{'mode'}, 1);
 					$hash->{STATE} = $decoded->{'mode'};
 				} or do {
