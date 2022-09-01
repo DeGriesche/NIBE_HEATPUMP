@@ -203,7 +203,7 @@ sub NIBE_HEATPUMP_requestToken($$) {
 
 	my ($err, $data) = HttpUtils_BlockingGet($param);
 	if ($err = "") {
-		Log 1, "Error when requesting token: ".$err;
+		Log3 $name, 3, "Error when requesting token: ".$err;
 	} else {
 		NIBE_HEATPUMP_saveToken($hash, $err, $data);
 	}
@@ -230,7 +230,7 @@ sub NIBE_HEATPUMP_refreshToken($) {
 
 	my ($err, $data) = HttpUtils_BlockingGet($param);
 	if ($err = "") {
-		Log 1, "Error when refreshing token: ".$err;
+		Log3 $name, 3, "Error when refreshing token: ".$err;
 	} else {
 		NIBE_HEATPUMP_saveToken($hash, $err, $data);
 	}
@@ -280,7 +280,7 @@ sub NIBE_HEATPUMP_refreshSystem($) {
 					}
 				};
 			} else {
-				Log 1, "Error on refreshing system: ".$err;
+				Log3 $name, 3, "Error on refreshing system: ".$err;
 			}
 		}
 	};
