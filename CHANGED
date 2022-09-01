@@ -1,7 +1,7 @@
 FHEM NIBE_HEATPUMP last changes:
 2022-09-01
 - prepare update
-- Update prepare_update.sh
+- Update 98_NIBE_HEATPUMP.pm
 - prepare update
 - Update 98_NIBE_HEATPUMP.pm
 - prepare update
