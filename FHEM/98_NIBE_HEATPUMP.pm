@@ -202,7 +202,11 @@ sub NIBE_HEATPUMP_requestToken($$) {
 	};
 
 	my ($err, $data) = HttpUtils_BlockingGet($param);
-	NIBE_HEATPUMP_saveToken($hash, $err, $data);
+	if ($err = "") {
+		Log 1, "Error when requesting token: ".$err;
+	} else {
+		NIBE_HEATPUMP_saveToken($hash, $err, $data);
+	}
 }
 
 sub NIBE_HEATPUMP_refreshToken($) {
@@ -225,7 +229,11 @@ sub NIBE_HEATPUMP_refreshToken($) {
 	};
 
 	my ($err, $data) = HttpUtils_BlockingGet($param);
-	NIBE_HEATPUMP_saveToken($hash, $err, $data);
+	if ($err = "") {
+		Log 1, "Error when refreshing token: ".$err;
+	} else {
+		NIBE_HEATPUMP_saveToken($hash, $err, $data);
+	}
 }
 
 sub NIBE_HEATPUMP_refresh($) {
@@ -271,6 +279,8 @@ sub NIBE_HEATPUMP_refreshSystem($) {
 						Log3 $hash->{NAME}, 3, "error while writing ".$param->{url}." - $e";
 					}
 				};
+			} else {
+				Log 1, "Error on refreshing system: ".$err;
 			}
 		}
 	};
@@ -311,7 +321,7 @@ sub NIBE_HEATPUMP_refreshSoftware($) {
 						Log3 $hash->{NAME}, 3, "error while writing ".$param->{url}." - $e";
 					}
 				};
-			}
+			} 
 		}
 	};
 	HttpUtils_NonblockingGet($param);
