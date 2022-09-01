@@ -164,17 +164,22 @@ sub NIBE_HEATPUMP_saveToken($$$) {
 	if ($err ne "") {
 		Log3 $name, 3, "error while requesting - $err";
 	} elsif ($data ne "") {
-		my $decoded = decode_json($data);
-		if (exists $decoded->{error}) {
+		eval {
+  			my $decoded = decode_json($data);
+			if (exists $decoded->{error}) {
 			Log3 $name, 3, "error while requesting - ".$decoded->{error};
-		} else {
-			readingsBeginUpdate($hash);
-			readingsBulkUpdate($hash, ".access_token", $decoded->{access_token} );
-			readingsBulkUpdate($hash, ".refresh_token", $decoded->{refresh_token} );
-			readingsBulkUpdate($hash, ".token_expiration", time() - 10 + $decoded->{expires_in});
-			readingsEndUpdate($hash, 1);
-			Log3 $name, 1, "Got new Token" if ($attr{$name}{debugMode});
-		}
+			} else {
+				readingsBeginUpdate($hash);
+				readingsBulkUpdate($hash, ".access_token", $decoded->{access_token} );
+				readingsBulkUpdate($hash, ".refresh_token", $decoded->{refresh_token} );
+				readingsBulkUpdate($hash, ".token_expiration", time() - 10 + $decoded->{expires_in});
+				readingsEndUpdate($hash, 1);
+				Log3 $name, 1, "Got new Token" if ($attr{$name}{debugMode});
+			}
+		} or do {
+		  	my $e = $@;
+		  	Log3 $name, 3, "$e";
+		};
 	}
 }
 
