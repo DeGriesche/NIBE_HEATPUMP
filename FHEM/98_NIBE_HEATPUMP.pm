@@ -6,8 +6,8 @@ use Encode;
 use HttpUtils;
 use Scalar::Util qw(looks_like_number);
 
-my $apiBaseUrl = 'https://api.nibeuplink.com/api/v1';
-my $oauthTokenBaseUrl = 'https://api.nibeuplink.com/oauth/token';
+my $apiBaseUrl = 'https://api.myuplink.com/oauth/login';
+my $oauthTokenBaseUrl = 'https://api.myuplink.com/oauth/token';
 my $redirectUrl	= "https://www.marshflattsfarm.org.uk/nibeuplink/oauth2callback/index.php";
 my $apiTimeout = 20;
 my $maxParam = 15;
