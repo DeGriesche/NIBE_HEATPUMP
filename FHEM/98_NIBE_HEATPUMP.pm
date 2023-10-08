@@ -6,7 +6,7 @@ use Encode;
 use HttpUtils;
 use Scalar::Util qw(looks_like_number);
 
-my $apiBaseUrl = 'https://api.myuplink.com/oauth/login';
+my $apiBaseUrl = 'https://api.myuplink.com/v2';
 my $oauthTokenBaseUrl = 'https://api.myuplink.com/oauth/token';
 my $redirectUrl	= "https://www.marshflattsfarm.org.uk/nibeuplink/oauth2callback/index.php";
 my $apiTimeout = 20;
@@ -64,7 +64,7 @@ sub NIBE_HEATPUMP_Define($$) {
 	$hash->{name} = $param[0];
 	$hash->{clientId} = $param[2];
 	$hash->{clientSecret} = $param[3];
-	$hash->{accessCodeUrl} = "https://api.myuplink.com/oauth/login?response_type=code&client_id=".$hash->{clientId}."&scope=WRITESYSTEM+READSYSTEM&redirect_uri=$redirectUrl&state=STATE";
+	$hash->{accessCodeUrl} = "https://api.myuplink.com/oauth/authorize?response_type=code&client_id=".$hash->{clientId}."&scope=READSYSTEM+WRITESYSTEM+offline_access&redirect_uri=$redirectUrl&state=x";
 	$attr{$name}{refreshInterval} = 600;
 	$attr{$name}{debugMode} = 0;
 	$attr{$name}{maxNotifications} = 10;
@@ -101,12 +101,17 @@ sub NIBE_HEATPUMP_Set($@) {
 		} else {
 			return "Unknown argument $cmd, choose one of accessCode" ;
 		}
-	} elsif (!exists $attr{$name}{systemId}) {
-		if ($cmd eq "systemId") {
-			$attr{$name}{systemId} = $args[0];
-			InternalTimer(gettimeofday() + $attr{$hash->{NAME}}{refreshInterval}, "NIBE_HEATPUMP_refresh", $hash);
+	} elsif (!exists $attr{$name}{systemId} || !exists $attr{$name}{deviceId}) {
+		#if ($cmd eq "systemId") {
+		#	$attr{$name}{systemId} = $args[0];
+		#	InternalTimer(gettimeofday() + $attr{$hash->{NAME}}{refreshInterval}, "NIBE_HEATPUMP_refresh", $hash);
+		#} elsif ($cmd eq "deviceId") {
+		#	$attr{$name}{deviceId} = $args[0];
+		#} els
+		if ($cmd eq "refreshSystem") {
+			NIBE_HEATPUMP_updateSystemAndDeviceId($hash);
 		} else {
-			return "Unknown argument $cmd, choose one of systemId" ;
+			return "Unknown argument $cmd, choose one of refreshSystem:noArg systemId deviceId" ;
 		}
 	} else {
 		if ($cmd eq "refresh") {
@@ -128,13 +133,7 @@ sub NIBE_HEATPUMP_Set($@) {
 sub NIBE_HEATPUMP_Attr(@) {
 	my ($cmd,$name,$attr_name,$attr_value) = @_;
 	if($cmd eq "set") {
-		if($attr_name eq "systemId") {
-			if(length($attr_value) ne 5 || !looks_like_number($attr_value)) {
-				my $err = "Invalid argument $attr_value to $attr_name. Must be numeric with 5 digits";
-				Log3 $name, 3, $err;
-				return3 $err;
-			}
-		} elsif ($attr_name =~ m/(refreshInterval|maxNotifications)/) {
+		if ($attr_name =~ m/(refreshInterval|maxNotifications)/) {
 			if(!looks_like_number($attr_value)) {
 				my $err = "Invalid argument $attr_value to $attr_name. Must be numeric";
 				Log3 $name, 3, $err;
@@ -214,6 +213,40 @@ sub NIBE_HEATPUMP_requestToken($$) {
 	}
 }
 
+sub NIBE_HEATPUMP_refreshSystem($){
+	my ($hash) = @_;
+	my $name = $hash->{NAME};
+	Log3 $name, 1, "Refresh System" if ($attr{$name}{debugMode});
+
+	my $param = {
+		url => "$apiBaseUrl/devices/".$attr{$name}{deviceId},
+		timeout => $apiTimeout,
+		hash => $hash,
+		method => "GET",
+		header => "Authorization: Bearer ".NIBE_HEATPUMP_getToken($hash),
+		callback => sub($) {
+			my ($param, $err, $data) = @_;
+			my $hash = $param->{hash};
+			if ($err ne "") {
+				Log3 $hash->{NAME}, 3, "error while requesting ".$param->{url}." - $err";
+			} elsif ($data ne "") {
+				eval {
+					my $decoded = decode_json($data);
+					readingsSingleUpdate($hash, "connectionStatus", $decoded->{'connectionState'}, 1);
+				} or do {
+					my $e = $@;
+					if ($e ne "") {
+						Log3 $hash->{NAME}, 3, "error while writing ".$param->{url}." - $e";
+					}
+				};
+			} else {
+				Log3 $name, 3, "Error on refreshing system: ".$err;
+			}
+		}
+	};
+	HttpUtils_NonblockingGet($param);
+}	
+
 sub NIBE_HEATPUMP_refreshToken($) {
 	my ($hash) = @_;
 	my $name = $hash->{NAME};
@@ -241,6 +274,37 @@ sub NIBE_HEATPUMP_refreshToken($) {
 	}
 }
 
+sub NIBE_HEATPUMP_updateSystemAndDeviceId($) {
+	my ($hash) = @_;
+	my $name = $hash->{NAME};
+	Log3 $name, 1, "Refresh System" if ($attr{$name}{debugMode});
+
+	my $param = {
+		url => "$apiBaseUrl/systems/me",
+		timeout => $apiTimeout,
+		method => "GET",
+		header => "Authorization: Bearer ".NIBE_HEATPUMP_getToken($hash)
+	};
+	
+	
+	my ($err, $data) = HttpUtils_BlockingGet($param);
+	if ($err = "") {
+		Log3 $name, 3, "Error when requesting system: ".$err;
+	} else {
+		eval {
+			my $decoded = decode_json($data);
+			$attr{$name}{systemId} = $decoded->{systems}[0]->{systemId};
+			$attr{$name}{deviceId} = $decoded->{systems}[0]->{devices}[0]->{id};
+			#InternalTimer(gettimeofday() + $attr{$hash->{NAME}}{refreshInterval}, "NIBE_HEATPUMP_refresh", $hash);
+		} or do {
+			my $e = $@;
+			if ($e ne "") {
+				Log3 $hash->{NAME}, 3, "error while writing ".$param->{url}." - $e";
+			}
+		};
+	}
+}
+
 sub NIBE_HEATPUMP_refresh($) {
 	my ($hash) = @_;
 	my $name = $hash->{NAME};
@@ -254,43 +318,10 @@ sub NIBE_HEATPUMP_refresh($) {
 	NIBE_HEATPUMP_refreshSoftware($hash);
 	NIBE_HEATPUMP_refreshSmartHomeMode($hash);
 	NIBE_HEATPUMP_refreshParameters($hash);
-	NIBE_HEATPUMP_refreshConfig($hash);
+	#NIBE_HEATPUMP_refreshConfig($hash);
 	NIBE_HEATPUMP_refreshNotifications($hash);
 }
 
-sub NIBE_HEATPUMP_refreshSystem($) {
-	my ($hash) = @_;
-	my $name = $hash->{NAME};
-	Log3 $name, 1, "Refresh System" if ($attr{$name}{debugMode});
-
-	my $param = {
-		url => "$apiBaseUrl/systems/".$attr{$name}{systemId},
-		timeout => $apiTimeout,
-		hash => $hash,
-		method => "GET",
-		header => "Authorization: Bearer ".NIBE_HEATPUMP_getToken($hash),
-		callback => sub($) {
-			my ($param, $err, $data) = @_;
-			my $hash = $param->{hash};
-			if ($err ne "") {
-				Log3 $hash->{NAME}, 3, "error while requesting ".$param->{url}." - $err";
-			} elsif ($data ne "") {
-				eval {
-					my $decoded = decode_json($data);
-					readingsSingleUpdate($hash, "connectionStatus", $decoded->{'connectionStatus'}, 1);
-				} or do {
-					my $e = $@;
-					if ($e ne "") {
-						Log3 $hash->{NAME}, 3, "error while writing ".$param->{url}." - $e";
-					}
-				};
-			} else {
-				Log3 $name, 3, "Error on refreshing system: ".$err;
-			}
-		}
-	};
-	HttpUtils_NonblockingGet($param);
-}
 
 sub NIBE_HEATPUMP_refreshSoftware($) {
 	my ($hash) = @_;
@@ -298,7 +329,7 @@ sub NIBE_HEATPUMP_refreshSoftware($) {
 	Log3 $name, 1, "Refresh Software" if ($attr{$name}{debugMode});
 
 	my $param = {
-		url => "$apiBaseUrl/systems/".$attr{$name}{systemId}."/software",
+		url => "$apiBaseUrl/devices/".$attr{$name}{deviceId}."/firmware-info",
 		timeout => $apiTimeout,
 		hash => $hash,
 		method => "GET",
@@ -312,12 +343,12 @@ sub NIBE_HEATPUMP_refreshSoftware($) {
 				eval {
 					readingsBeginUpdate($hash);
 					my $decoded = decode_json($data);
-					readingsBulkUpdate($hash, "software", $decoded->{current}->{name});
-					my $upgrade = $decoded->{upgrade};
+					readingsBulkUpdate($hash, "software", $decoded->{currentFwVersion});
+					my $upgrade = $decoded->{desiredFwVersion};
 					if (!defined($upgrade)) {
 						readingsBulkUpdate($hash, "softwareUpgrade", "-");
 					} else {
-						readingsBulkUpdate($hash, "softwareUpgrade", $upgrade->{name});
+						readingsBulkUpdate($hash, "softwareUpgrade", $upgrade);
 					}
 					readingsEndUpdate($hash, 1);
 				} or do {
@@ -338,7 +369,7 @@ sub NIBE_HEATPUMP_refreshSmartHomeMode($) {
 	Log3 $name, 1, "Refresh SmartHome mode" if ($attr{$name}{debugMode});
 
 	my $param = {
-		url => "$apiBaseUrl/systems/".$attr{$name}{systemId}."/smarthome/mode",
+		url => "$apiBaseUrl/systems/".$attr{$name}{systemId}."/smart-home-mode",
 		timeout => $apiTimeout,
 		hash => $hash,
 		method => "GET",
@@ -351,8 +382,8 @@ sub NIBE_HEATPUMP_refreshSmartHomeMode($) {
 			} elsif ($data ne "") {
 				eval {
 					my $decoded = decode_json($data);
-					readingsSingleUpdate($hash, "mode", $decoded->{'mode'}, 1);
-					$hash->{STATE} = $decoded->{'mode'};
+					readingsSingleUpdate($hash, "mode", $decoded->{'smartHomeMode'}, 1);
+					$hash->{STATE} = $decoded->{'smartHomeMode'};
 				} or do {
 					my $e = $@;
 					if ($e ne "") {
@@ -378,7 +409,7 @@ sub NIBE_HEATPUMP_refreshParameters($) {
 
 		if (scalar @idsSub == $maxParam || $i == $#ids) {
 			my $param = {
-				url => "$apiBaseUrl/systems/".$attr{$name}{systemId}."/parameters?parameterIds=".join("&parameterIds=", @idsSub),
+				url => "$apiBaseUrl/devices/".$attr{$name}{deviceId}."/points?parameters=".join(",", @idsSub),
 				timeout => $apiTimeout,
 				hash => $hash,
 				method => "GET",
@@ -394,9 +425,9 @@ sub NIBE_HEATPUMP_refreshParameters($) {
 							my $decoded = decode_json($data);
 							for my $hashref (@{ $decoded }) {
 								my $parameterId = $hashref->{ 'parameterId' };
-								my $parameterValue = $hashref->{ 'rawValue' };
-								my $parameterUnit = $hashref->{ 'unit' };
-								$parameterValue = $parameterValue / 10 if ($parameterUnit =~ m/.C|GM/);
+								my $parameterValue = $hashref->{ 'value' };
+								my $parameterUnit = $hashref->{ 'parameterUnit' };
+								#$parameterValue = $parameterValue / 10 if ($parameterUnit =~ m/.C|GM/);
 								readingsBulkUpdate($hash, $parameter{$parameterId}, $parameterValue);
 							}
 							readingsEndUpdate($hash, 1);
@@ -422,7 +453,7 @@ sub NIBE_HEATPUMP_refreshConfig($) {
 	Log3 $name, 1, "Refreshing config" if ($attr{$name}{debugMode});
 
 	my $param = {
-		url => "$apiBaseUrl/systems/".$attr{$name}{systemId}."/config",
+		url => "$apiBaseUrl/devices/".$attr{$name}{deviceId}."/config",
 		timeout => $apiTimeout,
 		hash => $hash,
 		method => "GET",
@@ -506,7 +537,7 @@ sub NIBE_HEATPUMP_setSmartHomeMode($$) {
 	Log3 $name, 1, "Set SmartHome mode $value" if ($attr{$name}{debugMode});
 
 	my $param = {
-		url => "$apiBaseUrl/systems/".$attr{$name}{systemId}."/smarthome/mode",
+		url => "$apiBaseUrl/devices/".$attr{$name}{systemId}."/smarthome/mode",
 		timeout => 10,
 		method => "PUT",
 		data => '{ "mode": "'.$value.'" }',
