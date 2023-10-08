@@ -64,7 +64,7 @@ sub NIBE_HEATPUMP_Define($$) {
 	$hash->{name} = $param[0];
 	$hash->{clientId} = $param[2];
 	$hash->{clientSecret} = $param[3];
-	$hash->{accessCodeUrl} = "https://api.nibeuplink.com/oauth/authorize?response_type=code&client_id=".$hash->{clientId}."&scope=WRITESYSTEM+READSYSTEM&redirect_uri=$redirectUrl&state=STATE";
+	$hash->{accessCodeUrl} = "https://api.myuplink.com/oauth/login?response_type=code&client_id=".$hash->{clientId}."&scope=WRITESYSTEM+READSYSTEM&redirect_uri=$redirectUrl&state=STATE";
 	$attr{$name}{refreshInterval} = 600;
 	$attr{$name}{debugMode} = 0;
 	$attr{$name}{maxNotifications} = 10;
